@@ -1,14 +1,16 @@
 ﻿namespace SmakenziBot
 {
-    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
+    using Behaviors;
+    using Behaviors.BaseBehaviors;
+    using Behaviors.CombatBehaviors;
     using BroodWar.Api;
     using BroodWar.Api.Enum;
-    using Managers;
+    using BuildOrder;
     using NBWTA;
     using NBWTA.Result;
     using NBWTA.Utils;
@@ -16,7 +18,7 @@
 
     public class Bot
     {
-        private readonly BuildOrder _buildOrder = new BuildOrder();
+        private readonly BuildOrder.BuildOrder _buildOrder = new BuildOrder.BuildOrder();
         private readonly StepExecutor _stepExecutor;
         private static readonly Stopwatch StepRetryTimer = new Stopwatch();
         private const int RetryIntervalMs = 5000;
@@ -36,13 +38,13 @@
         private readonly IReadOnlyCollection<HashSet<Unit>> _resourceClusters;
         private readonly IReadOnlyCollection<TilePosition> _mainBuildingLocations;
 
-        private readonly WorkerManager _workerManager = new WorkerManager();
-
         private readonly AnalyzedMap _analyzedMap;
+
+        private readonly IReadOnlyCollection<IBehavior> _behaviors;
 
         public Bot()
         {
-            //MapExporter.ExportMap();
+            MapExporter.ExportMap();
             //var mapAnalyzer = new MapAnalyzer();
             //_analyzedMap = mapAnalyzer.Analyze(Game.MapWidth * 4, Game.MapHeight * 4, tile => Game.IsWalkable(tile.x, tile.y));
 
@@ -52,6 +54,17 @@
             ConstructionStarted = _constructionStarted.Publish();
 
             _stepExecutor = new StepExecutor(TrainingStarted, ConstructionStarted);
+
+            var baseLocation = Game.Self.StartLocation;
+            _behaviors = new IBehavior[]
+            {
+                new IdleWorkersToMineral(baseLocation),
+                new ThreeWorkersOnGas(baseLocation),
+                //new CounterAttackStackWorkers(baseLocation),
+                new AttackEnemiesInBase(baseLocation),
+                new StepBackIfUnderAttack(),
+                new IdleFightersAttackClosestEnemy(), 
+            };
 
             Game.SendText("black sheep wall");
 
@@ -64,13 +77,11 @@
 
         public void OnGameStart()
         {
-            Game.SetLocalSpeed(2);
+            Game.SetLocalSpeed(0);
+            Game.SetFrameSkip(2);
             UnitSpawned.Connect();
             TrainingStarted.Connect();
             ConstructionStarted.Connect();
-            Game.Self.Units.Where(x => x.UnitType.IsWorker).ForEach(_workerManager.Assign);
-            UnitSpawned.Where(x => x.UnitType.IsWorker).Subscribe(_workerManager.Assign);
-            UnitDestroyed.Where(x => x.UnitType.IsWorker).Subscribe(_workerManager.Release);
 
             _stepExecutor.Execute(_buildOrder.Current);
         }
@@ -89,14 +100,16 @@
             Game.Events.Where(x => x.Type == EventType.UnitMorph).Where(x => x.Unit.Order == OrderType.IncompleteBuilding).ForEach(x => _constructionStarted.OnNext(x.Unit.UnitType.Type));
 
             ExecuteBuildOrder();
-            _workerManager.OnFrame();
+            ExecuteBehaviors();
             OrderLingsToAttack();
+            OrderHydrasToAttack();
         }
 
         private void ExecuteBuildOrder()
         {
             if (_buildOrder.Current.AllPrerequisitesMet() && (_stepExecutor.IsIdle || !_stepExecutor.IsIdle && ShouldRetry))
             {
+                Game.Write($"Executing step: {_buildOrder.Current}");
                 _stepExecutor.Execute(_buildOrder.Current);
                 StepRetryTimer.Restart();
             }
@@ -104,23 +117,36 @@
 
         private static bool ShouldRetry => StepRetryTimer.ElapsedMilliseconds > RetryIntervalMs;
 
+        private void ExecuteBehaviors() => _behaviors.ForEach(b => b.Execute());
+
         private static void OrderLingsToAttack()
         {
             if (Game.FrameCount % 20 != 0) return;
-            var zerglingsNearMyBase = Game.Self.Units
-                .Where(x => x.UnitType.Type == UnitType.Zerg_Zergling)
-                .Where(x => !x.IsAttacking)
-                .Where(x => Game.Self.StartLocation.CalcApproximateDistance(x.TilePosition) < 20)
-                .ToList();
+            var zerglingsNearMyBase = UnitsNearMyBase(UnitType.Zerg_Zergling).Where(x => !x.IsAttacking).ToList();
+            if (zerglingsNearMyBase.Count < 6) return;
+            ShiftAttackAllStartLocations(zerglingsNearMyBase);
+        }
 
-            if (zerglingsNearMyBase.Count <= 20) return;
+        private static void OrderHydrasToAttack()
+        {
+            if ((Game.FrameCount + 1) % 20 != 0) return;
+            var hydrasNearMyBase = UnitsNearMyBase(UnitType.Zerg_Hydralisk).Where(x => !x.IsAttacking).ToList();
+            if (hydrasNearMyBase.Count < 12) return;
+            ShiftAttackAllStartLocations(hydrasNearMyBase);
+        }
 
+        private static IEnumerable<Unit> UnitsNearMyBase(UnitType unitType) =>
+            Game.Self.Units
+                .Where(x => x.UnitType.Type == unitType)
+                .Where(x => Game.Self.StartLocation.CalcApproximateDistance(x.TilePosition) < 20);
+
+        private static void ShiftAttackAllStartLocations(IEnumerable<Unit> units)
+        {
             var notMyBaseStartLocations = Game.StartLocations.Except(new[] { Game.Self.StartLocation })
                 .Select(loc => new Position(loc.X * 32, loc.Y * 32))
                 .ToList();
 
-            zerglingsNearMyBase
-                .ForEach(x => notMyBaseStartLocations.ForEach(position => x.Attack(position, true)));
+            units.ForEach(x => notMyBaseStartLocations.ForEach(position => x.Attack(position, true)));
         }
     }
 }

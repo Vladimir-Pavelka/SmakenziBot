@@ -69,23 +69,45 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Behaviors\BaseBehaviors\AttackEnemiesInBase.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\BaseBehavior.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\CounterAttackStackWorkers.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\CombatBehavior.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\FocusFire.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\IdleFightersAttackClosestEnemy.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\RegroupBeforeEngagement.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\RetreatIfOutnumbered.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\StepBackIfUnderAttack.cs" />
+    <Compile Include="Behaviors\IBehavior.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\IdleWorkersToMineral.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\ThreeWorkersOnGas.cs" />
+    <Compile Include="BuildOrder\Prerequisities\AvailableSupplyPrerequisite.cs" />
     <Compile Include="Bot.cs" />
-    <Compile Include="BuildOrder.cs" />
+    <Compile Include="BuildOrder\Prerequisities\BuildingPrerequisite.cs" />
+    <Compile Include="BuildOrder\BuildOrder.cs" />
+    <Compile Include="BuildOrder\Steps\CancelConstructBuildingStep.cs" />
+    <Compile Include="BuildOrder\Steps\ConstructBuildingStep.cs" />
     <Compile Include="Distances.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="MainBuildingPlacement.cs" />
     <Compile Include="Managers\UnitManagerBase.cs" />
-    <Compile Include="Managers\WorkerManager.cs" />
-    <Compile Include="Managers\WorkerStatus.cs" />
     <Compile Include="MapExporter.cs" />
+    <Compile Include="BuildOrder\Steps\MorphUnitStep.cs" />
+    <Compile Include="BuildOrder\Prerequisities\Prerequisite.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BuildOrder\Steps\ResearchUpgradeStep.cs" />
+    <Compile Include="BuildOrder\Prerequisities\ResourcePrerequisite.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="ResourceSiteLocations.cs" />
-    <Compile Include="StepExecutor.cs" />
+    <Compile Include="BuildOrder\Steps\Step.cs" />
+    <Compile Include="BuildOrder\StepExecutor.cs" />
+    <Compile Include="BuildOrder\Prerequisities\UnitExistsPrerequisite.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
