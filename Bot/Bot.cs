@@ -14,6 +14,7 @@
     using NBWTA;
     using NBWTA.Result;
     using NBWTA.Utils;
+    using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class Bot

@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using Utils;
 
     public abstract class CombatBehavior : IBehavior
     {

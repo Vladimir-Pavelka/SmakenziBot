@@ -3,6 +3,7 @@
     using System.Linq;
     using BroodWar.Api;
     using NBWTA.Utils;
+    using Utils;
 
     public class IdleFightersAttackClosestEnemy : CombatBehavior
     {

@@ -1,4 +1,4 @@
-﻿namespace SmakenziBot
+﻿namespace SmakenziBot.Utils
 {
     using System.Collections.Generic;
     using System.Linq;

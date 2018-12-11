@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public abstract class BaseBehavior : IBehavior
