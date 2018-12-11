@@ -11,5 +11,7 @@
             Prerequisites = Enumerable.Empty<Prerequisite>();
             Item = item;
         }
+
+        public override string ToString() => $"Cancel {Item}";
     }
 }

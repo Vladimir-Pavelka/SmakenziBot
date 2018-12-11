@@ -72,6 +72,7 @@
     <Compile Include="Behaviors\BaseBehaviors\AttackEnemiesInBase.cs" />
     <Compile Include="Behaviors\BaseBehaviors\BaseBehavior.cs" />
     <Compile Include="Behaviors\BaseBehaviors\CounterAttackStackWorkers.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\WorkersAttackClosestEnemy.cs" />
     <Compile Include="Behaviors\CombatBehaviors\CombatBehavior.cs" />
     <Compile Include="Behaviors\CombatBehaviors\FocusFire.cs" />
     <Compile Include="Behaviors\CombatBehaviors\IdleFightersAttackClosestEnemy.cs" />

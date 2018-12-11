@@ -11,10 +11,13 @@
 
         protected IEnumerable<Unit> MyCombatUnits => Game.Self.Units.Where(u => u.IsFighter());
 
-        protected Unit GetClosestEnemyFighter(Unit origin) => Game.Enemy.Units.Where(u => u.IsFighter())
+        protected Unit GetClosestEnemyAttacker(Unit origin) => Game.Enemy.Units.Where(u => u.UnitType.CanAttack)
             .OrderBy(u => u.TilePosition.CalcApproximateDistance(origin.TilePosition)).First();
 
-        protected Position GetRetreatVector(Unit attacker, Unit defender) =>
-            defender.Position + defender.Position - attacker.Position;
+        protected Position GetRetreatVector(Unit attacker, Unit defender)
+        {
+            var stepBackTo = defender.Position - attacker.Position + defender.Position;
+            return stepBackTo;
+        }
     }
 }

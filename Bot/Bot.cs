@@ -62,8 +62,9 @@
                 new IdleWorkersToMineral(baseLocation),
                 new ThreeWorkersOnGas(baseLocation),
                 //new CounterAttackStackWorkers(baseLocation),
+                new WorkersAttackClosestEnemy(baseLocation), 
                 new AttackEnemiesInBase(baseLocation),
-                new StepBackIfUnderAttack(),
+                //new StepBackIfUnderAttack(),
                 new IdleFightersAttackClosestEnemy(), 
             };
 

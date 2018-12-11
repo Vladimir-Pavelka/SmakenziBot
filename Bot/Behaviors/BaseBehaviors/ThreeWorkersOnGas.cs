@@ -14,7 +14,7 @@
         {
             var workersGatheringGas = BaseWorkers.Where(w => w.IsGatheringGas).ToList();
             var hasNotEnough = workersGatheringGas.Count < 3 && HasBuilding(UnitType.Zerg_Extractor);
-            if (hasNotEnough)
+            if (hasNotEnough && BaseWorkers.Any())
             {
                 GatherClosestGas(GetWorker());
                 return;
