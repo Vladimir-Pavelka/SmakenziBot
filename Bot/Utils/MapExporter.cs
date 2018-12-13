@@ -25,8 +25,8 @@
             var mapName = string.Join("", Game.MapName.Where(validFileNameChars.Contains));
             var folder = $"../../../ExportedMaps/{mapName}";
             Directory.CreateDirectory(folder);
-            ExportMap($"{folder}/{mapName}.bmp", true, Resolution.BuildTiles);
-            ExportMap($"{folder}/{mapName}_walls.bmp", false, Resolution.BuildTiles);
+            ExportMap($"{folder}/{mapName}.bmp");
+            ExportMap($"{folder}/{mapName}_walls.bmp", false);
         }
 
         /// <summary>

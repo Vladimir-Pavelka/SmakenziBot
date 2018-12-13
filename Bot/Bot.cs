@@ -46,8 +46,11 @@
         public Bot()
         {
             MapExporter.ExportMap();
-            //var mapAnalyzer = new MapAnalyzer();
-            //_analyzedMap = mapAnalyzer.Analyze(Game.MapWidth * 4, Game.MapHeight * 4, tile => Game.IsWalkable(tile.x, tile.y));
+            var mapAnalyzer = new MapAnalyzer();
+            var relevantMinerals = Game.StaticMinerals.Where(m => m.InitialResources > 200).Select(m => (m.TilePosition.X, m.TilePosition.Y)).ToList();
+            var relevantGeysers = Game.StaticGeysers.Where(g => g.InitialResources > 200).Select(g => (g.TilePosition.X, g.TilePosition.Y)).ToList();
+            _analyzedMap = mapAnalyzer.Analyze(Game.MapWidth * 4, Game.MapHeight * 4, tile => Game.IsWalkable(tile.x, tile.y),
+                relevantMinerals, relevantGeysers, tile => Game.IsBuildable(tile.x, tile.y, false));
 
             UnitSpawned = _unitSpawned.Publish();
             UnitDestroyed = _unitDestroyed.Publish();
@@ -62,10 +65,10 @@
                 new IdleWorkersToMineral(baseLocation),
                 new ThreeWorkersOnGas(baseLocation),
                 //new CounterAttackStackWorkers(baseLocation),
-                new WorkersAttackClosestEnemy(baseLocation), 
+                new WorkersAttackClosestEnemy(baseLocation),
                 new AttackEnemiesInBase(baseLocation),
                 //new StepBackIfUnderAttack(),
-                new IdleFightersAttackClosestEnemy(), 
+                new IdleFightersAttackClosestEnemy(),
             };
 
             Game.SendText("black sheep wall");
@@ -92,8 +95,8 @@
         {
             //Draw.Regions(_analyzedMap.MapRegions);
             //Draw.Chokes(_analyzedMap.ChokeRegions);
-            //Draw.ResourceClusters(_resourceClusters);
-            //Draw.MainBuildingPlacements(_mainBuildingLocations);
+            Draw.ResourceClusters(_analyzedMap.MapRegions.SelectMany(r => r.ResourceSites).ToList());
+            Draw.MainBuildingPlacements(_analyzedMap.MapRegions.SelectMany(r => r.ResourceSites).ToList());
 
             Game.Events.Where(x => x.Type == EventType.UnitComplete).ForEach(x => _unitSpawned.OnNext(x.Unit));
             Game.Events.Where(x => x.Type == EventType.UnitDestroy).ForEach(x => _unitDestroyed.OnNext(x.Unit));

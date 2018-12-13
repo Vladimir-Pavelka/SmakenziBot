@@ -39,7 +39,7 @@
       <HintPath>..\BWAPI-CLI\Broodwar.dll</HintPath>
     </Reference>
     <Reference Include="NBWTA, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NBWTA.1.0.0\lib\net462\NBWTA.dll</HintPath>
+      <HintPath>..\packages\NBWTA.2.0.2\lib\net462\NBWTA.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

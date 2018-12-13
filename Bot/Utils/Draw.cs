@@ -20,18 +20,19 @@
                 .ForEach(t => Game.DrawDot(new Position(t.x * 8 + 4, t.y * 8 + 4), Color.Red));
         }
 
-        public static void ResourceClusters(IEnumerable<HashSet<Unit>> clusters)
+        public static void ResourceClusters(IEnumerable<ResourceSite> sites)
         {
-            clusters.Select((c, idx) => (cluster: c, idx: idx))
-                .ForEach(cidx => cidx.cluster.ForEach(x => Game.DrawText(x.Position, $"{cidx.idx}")));
+            sites.Select((s, idx) => (resources: s.MineralsBuildTiles.Concat(s.GeysersBuildTiles), idx: idx))
+                .ForEach(sidx => sidx.resources.ForEach(r => Game.DrawText(new Position(r.x * 32, r.y * 32), $"{sidx.idx}")));
         }
 
-        public static void MainBuildingPlacements(IReadOnlyCollection<TilePosition> mainBuildingLocations)
+        public static void MainBuildingPlacements(IReadOnlyCollection<ResourceSite> sites)
         {
-            mainBuildingLocations.ForEach(location =>
+            sites.ForEach(site =>
             {
-                var topLeft = new Position(location.X * 32, location.Y * 32);
-                var bottomRight = new Position((location.X + 4) * 32, (location.Y + 3) * 32);
+                var location = site.OptimalResourceDepotBuildTile;
+                var topLeft = new Position(location.x * 32, location.y * 32);
+                var bottomRight = new Position((location.x + 4) * 32, (location.y + 3) * 32);
                 Game.DrawBox(topLeft, bottomRight, Color.CornflowerBlue, false);
             });
         }
