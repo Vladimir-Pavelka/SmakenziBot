@@ -4,10 +4,10 @@
     using System.Linq;
     using Prerequisities;
 
-    public class Step<TItem> : Step
+    public class Step<TTarget> : Step
     {
-        public TItem Item { get; protected set; }
-        public override string ToString() => Item.ToString();
+        public TTarget Target { get; protected set; }
+        public override string ToString() => Target.ToString();
     }
 
     public class Step

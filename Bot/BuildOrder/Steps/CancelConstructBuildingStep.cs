@@ -6,12 +6,12 @@
 
     public class CancelConstructBuildingStep : Step<UnitType>
     {
-        public CancelConstructBuildingStep(UnitType item)
+        public CancelConstructBuildingStep(UnitType target)
         {
             Prerequisites = Enumerable.Empty<Prerequisite>();
-            Item = item;
+            Target = target;
         }
 
-        public override string ToString() => $"Cancel {Item}";
+        public override string ToString() => $"Cancel {Target}";
     }
 }

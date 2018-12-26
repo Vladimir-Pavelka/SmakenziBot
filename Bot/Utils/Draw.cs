@@ -14,24 +14,38 @@
         {
         }
 
-        public static void Chokes(IEnumerable<ChokeRegion> chokeRegions)
+        public static void Chokes(IEnumerable<ChokeRegion> chokeRegions) =>
+            Chokes(chokeRegions.SelectMany(ch => ch.ContentTiles));
+
+        public static void Chokes(IEnumerable<(int x, int y)> chokePoints) =>
+             chokePoints.ForEach(t => Game.DrawDot(new Position(t.x * 8 + 4, t.y * 8 + 4), Color.Red));
+
+        public static void ChokeLine(IReadOnlyCollection<(int x, int y)> chokeLinePoints)
         {
-            chokeRegions.SelectMany(ch => ch.ContentTiles)
-                .ForEach(t => Game.DrawDot(new Position(t.x * 8 + 4, t.y * 8 + 4), Color.Red));
+            var firstPoint = chokeLinePoints.First();
+            var lastPoint = chokeLinePoints.Last();
+            var lineStart = new Position(firstPoint.x * 8 + 4, firstPoint.y * 8 + 4);
+            var lineEnd = new Position(lastPoint.x * 8 + 4, lastPoint.y * 8 + 4);
+
+            Game.DrawLine(lineStart, lineEnd, Color.Red);
         }
 
-        public static void ResourceClusters(IEnumerable<HashSet<Unit>> clusters)
-        {
+        public static void ResourceClusters(IEnumerable<IEnumerable<(int x, int y)>> clusters) =>
             clusters.Select((c, idx) => (cluster: c, idx: idx))
-                .ForEach(cidx => cidx.cluster.ForEach(x => Game.DrawText(x.Position, $"{cidx.idx}")));
+                .ForEach(cidx => ResourceCluster(cidx.cluster, cidx.idx));
+
+        private static void ResourceCluster(IEnumerable<(int x, int y)> cluster, int idx)
+        {
+            var positions = cluster.Select(tile => new Position(tile.x * 32 + 16, tile.y * 32 + 16));
+            positions.ForEach(p => Game.DrawText(p, $"{idx}"));
         }
 
-        public static void MainBuildingPlacements(IReadOnlyCollection<TilePosition> mainBuildingLocations)
+        public static void MainBuildingPlacements(IEnumerable<(int x, int y)> mainBuildingLocations)
         {
             mainBuildingLocations.ForEach(location =>
             {
-                var topLeft = new Position(location.X * 32, location.Y * 32);
-                var bottomRight = new Position((location.X + 4) * 32, (location.Y + 3) * 32);
+                var topLeft = new Position(location.x * 32, location.y * 32);
+                var bottomRight = new Position((location.x + 4) * 32, (location.y + 3) * 32);
                 Game.DrawBox(topLeft, bottomRight, Color.CornflowerBlue, false);
             });
         }

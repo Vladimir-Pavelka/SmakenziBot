@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using UnitType = BroodWar.Api.Enum.UnitType;
 
     public static class Extensions
     {
@@ -20,5 +21,8 @@
         }
 
         public static bool IsFighter(this Unit unit) => unit.UnitType.CanAttack && !unit.UnitType.IsWorker;
+
+        public static bool IsTraining(this Unit unit, UnitType wantedType) =>
+            unit.TrainingQueue.Any() && unit.TrainingQueue.First().Type == wantedType;
     }
 }

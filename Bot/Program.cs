@@ -48,13 +48,7 @@
         private static void WaitForMatchStart()
         {
             Console.WriteLine("Waiting to enter match");
-            while (!Game.IsInGame)
-            {
-                Client.Update();
-                if (Client.IsConnected) continue;
-                Console.WriteLine("Reconnecting...");
-                Reconnect();
-            }
+            while (!Game.IsInGame) Update();
         }
 
         private static void RunMainGameLoop(Bot bot)
@@ -62,12 +56,17 @@
             while (Game.IsInGame)
             {
                 bot.OnFrame();
-                Client.Update();
-                if (Client.IsConnected) continue;
-
-                Console.WriteLine("Reconnecting...");
-                Reconnect();
+                Update();
             }
+        }
+
+        private static void Update()
+        {
+            Client.Update();
+            if (Client.IsConnected) return;
+
+            Console.WriteLine("Reconnecting...");
+            Reconnect();
         }
 
         private static void Reconnect()

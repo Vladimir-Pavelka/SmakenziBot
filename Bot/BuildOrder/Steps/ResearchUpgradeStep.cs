@@ -5,24 +5,28 @@
     using BroodWar.Api;
     using BroodWar.Api.Enum;
     using Prerequisities;
+    using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class ResearchUpgradeStep : Step<UpgradeType>
     {
-        public ResearchUpgradeStep(UpgradeType item, params Prerequisite[] prerequisites) : this(item, prerequisites.ToList())
+        public ResearchUpgradeStep(UpgradeType target, params Prerequisite[] prerequisites) : this(target, prerequisites.ToList())
         {
         }
 
-        public ResearchUpgradeStep(UpgradeType item, IEnumerable<Prerequisite> prerequisites)
+        public ResearchUpgradeStep(UpgradeType target, IEnumerable<Prerequisite> extraPrerequisites)
         {
-            Research = Upgrade.AllUpgrades.First(u => u.TypeEquals(item));
+            Research = UpgradeTypes.All[target];
             ResearchedBy = Research.WhatUpgrades.Type;
-            
-            var defaultPrerequisites = new Prerequisite[]
-                {new UnitExistsPrerequisite(ResearchedBy)};
 
-            Prerequisites = defaultPrerequisites.Concat(prerequisites).ToList();
-            Item = item;
+            var defaultPrerequisites = new Prerequisite[]
+            {
+                new BuildingExistsPrerequisite(ResearchedBy),
+                new ResourcePrerequisite(Research.MineralPrice(0), Research.GasPrice(0)), 
+            };
+
+            Prerequisites = defaultPrerequisites.Concat(extraPrerequisites).ToList();
+            Target = target;
         }
 
         public UnitType ResearchedBy { get; }

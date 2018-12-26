@@ -12,7 +12,7 @@
 
         public override void Execute()
         {
-            if (!EnemiesInBase.Any() || !BaseCombatUnits.Any()) return;
+            if (!EnemiesInBase.Any()) return;
             BaseCombatUnits.Where(u => u.IsIdle).ForEach(u => u.Attack(EnemiesInBase.First().Position, false));
         }
     }

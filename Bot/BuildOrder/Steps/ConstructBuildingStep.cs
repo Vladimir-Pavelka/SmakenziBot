@@ -4,20 +4,29 @@
     using System.Linq;
     using BroodWar.Api.Enum;
     using Prerequisities;
+    using Utils;
 
     public class ConstructBuildingStep : Step<UnitType>
     {
-        public ConstructBuildingStep(UnitType item, params Prerequisite[] prerequisites) : this(item, prerequisites.ToList())
+        public ConstructBuildingStep(UnitType target, params Prerequisite[] prerequisites) : this(target, prerequisites.ToList())
         {
         }
 
-        public ConstructBuildingStep(UnitType item, IEnumerable<Prerequisite> prerequisites)
+        public ConstructBuildingStep(UnitType target, IEnumerable<Prerequisite> extraPrerequisites)
         {
+            var unitType = UnitTypes.All[target];
             var defaultPrerequisites = new Prerequisite[]
-                {new UnitExistsPrerequisite(UnitType.Zerg_Drone)};
+            {
+                new ResourcePrerequisite(unitType.Price.Minerals, unitType.Price.Gas)
+            };
+            var unitPrerequisites = unitType.RequiredUnits.Keys.Where(u => !u.IsBuilding).Select(x => new UnitExistsPrerequisite(x.Type));
+            var buildingPrerequisites = unitType.RequiredUnits.Keys.Where(u => u.IsBuilding).Select(x => new BuildingExistsPrerequisite(x.Type));
 
-            Prerequisites = defaultPrerequisites.Concat(prerequisites).ToList();
-            Item = item;
+            Prerequisites = defaultPrerequisites.Concat(unitPrerequisites)
+                .Concat(buildingPrerequisites).Concat(extraPrerequisites)
+                .ToList();
+
+            Target = target;
         }
     }
 }

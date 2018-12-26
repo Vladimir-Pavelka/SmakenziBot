@@ -4,11 +4,11 @@
     using BroodWar.Api;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
-    public class BuildingPrerequisite : Prerequisite
+    public class BuildingExistsPrerequisite : Prerequisite
     {
         private readonly UnitType _buildingPrerequisite;
 
-        public BuildingPrerequisite(UnitType buildingType)
+        public BuildingExistsPrerequisite(UnitType buildingType)
         {
             _buildingPrerequisite = buildingType;
         }

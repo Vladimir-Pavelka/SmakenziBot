@@ -6,18 +6,18 @@
     using Prerequisities;
     using Utils;
 
-    public class MorphUnitStep : Step<UnitType>
+    public class MorphUpgradeBuildingStep : Step<UnitType>
     {
-        public MorphUnitStep(UnitType target, params Prerequisite[] extraPrerequisities) : this(target, extraPrerequisities.ToList())
+        public MorphUpgradeBuildingStep(UnitType target, params Prerequisite[] extraPrerequisities) : this(target, extraPrerequisities.ToList())
         {
         }
 
-        public MorphUnitStep(UnitType target, IEnumerable<Prerequisite> extraPrerequisities)
+        public MorphUpgradeBuildingStep(UnitType target, IEnumerable<Prerequisite> extraPrerequisities)
         {
             var unitType = UnitTypes.All[target];
+
             var defaultPrerequisites = new Prerequisite[]
             {
-                new AvailableSupplyPrerequisite(unitType.Price.Supply/2),
                 new ResourcePrerequisite(unitType.Price.Minerals, unitType.Price.Gas)
             };
 
@@ -26,6 +26,9 @@
 
             Prerequisites = defaultPrerequisites.Concat(unitPrerequisites).Concat(buildingPrerequisites).Concat(extraPrerequisities).ToList();
             Target = target;
+            WhatMorphs = unitType.WhatBuilds.Item1.Type;
         }
+
+        public UnitType WhatMorphs { get; }
     }
 }

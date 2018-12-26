@@ -24,7 +24,21 @@
         protected bool IsInBase(Unit u) => u.TilePosition.CalcApproximateDistance(BasePosition) < 15;
         protected bool IsNearMineralLine(Unit u) => BaseWorkers.Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Any(w => w.TilePosition.CalcApproximateDistance(u.TilePosition) < 1);
 
-        protected IEnumerable<Unit> BaseWorkers => Game.Self.Units.Where(u => u.UnitType.IsWorker).Where(IsInBase);
+        private (IEnumerable<Unit> baseWorkers, int frameCount) _baseWorkers = (null, -1);
+        protected IEnumerable<Unit> BaseWorkers
+        {
+            get
+            {
+                if (Game.FrameCount != _baseWorkers.frameCount)
+                {
+                    var baseWorkers = Game.Self.Units.Where(u => u.UnitType.IsWorker).Where(IsInBase).ToList();
+                    _baseWorkers = (baseWorkers, Game.FrameCount);
+                }
+
+                return _baseWorkers.baseWorkers;
+            }
+        }
+
         protected IEnumerable<Unit> BaseMinerals => Game.Minerals.Where(IsInBase);
 
         protected bool HasBuilding(UnitType buildingType) => BaseBuildings.Any(x => x.UnitType.Type == buildingType);
@@ -35,7 +49,8 @@
         protected void GatherClosestMineral(Unit worker)
         {
             var distanceOrderedMinerals = BaseMinerals.OrderBy(worker.Distance).ToList();
-            var closestMineral = distanceOrderedMinerals.FirstOrDefault(x => !x.IsBeingGathered) ?? distanceOrderedMinerals.First();
+            var closestMineral = distanceOrderedMinerals.FirstOrDefault(x => !x.IsBeingGathered) ?? distanceOrderedMinerals.FirstOrDefault();
+            if (closestMineral == null) return;
             worker.Gather(closestMineral, false);
         }
 

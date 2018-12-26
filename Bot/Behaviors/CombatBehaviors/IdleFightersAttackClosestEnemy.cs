@@ -9,9 +9,9 @@
     {
         public override void Execute()
         {
-            MyCombatUnits.Where(IsOutsideOfBase).Where(u => u.IsIdle).ForEach(u =>
+            MyCombatUnits.Where(u => u.IsIdle).Where(IsOutsideOfBase).ForEach(u =>
             {
-                if (Game.Enemy.Units.Any()) u.Attack(Game.Enemy.Units.ClosestTo(u), false);
+                if (Game.Enemy.Units.Any()) u.Attack(Game.Enemy.Units.ClosestTo(u).Position, false);
             });
         }
 
