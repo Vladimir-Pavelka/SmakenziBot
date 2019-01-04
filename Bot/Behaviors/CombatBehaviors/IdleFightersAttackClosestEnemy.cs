@@ -4,6 +4,7 @@
     using BroodWar.Api;
     using NBWTA.Utils;
     using Utils;
+    using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class IdleFightersAttackClosestEnemy : CombatBehavior
     {
@@ -11,7 +12,17 @@
         {
             MyCombatUnits.Where(u => u.IsIdle).Where(IsOutsideOfBase).ForEach(u =>
             {
-                if (Game.Enemy.Units.Any()) u.Attack(Game.Enemy.Units.ClosestTo(u).Position, false);
+                if (Game.Enemy.Units.All(eu => eu.UnitType.Type == UnitType.Unknown))
+                {
+                    if (!GameMemory.EnemyBuildings.Any()) return;
+                    var closestEnemyBuilding = GameMemory.EnemyBuildings
+                        .MinBy(b => u.Position.CalcApproximateDistance(b));
+                    u.Attack(closestEnemyBuilding, false);
+                    return;
+                }
+
+                var closestEnemyUnit = Game.Enemy.Units.ClosestTo(u);
+                u.Attack(closestEnemyUnit.Position, false);
             });
         }
 

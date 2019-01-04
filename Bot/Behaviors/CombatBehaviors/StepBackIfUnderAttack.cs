@@ -13,7 +13,9 @@
                 .Where(pair => pair.nearbyUnits.Where(Game.Enemy.Units.Contains).Count() > 1)
                 .Select(pair => (defender: pair.defender, alliedUnits: pair.nearbyUnits.Where(Game.Self.Units.Contains), attacker: GetClosestEnemyAttacker(pair.defender)))
                 .Select(pair => (defender: pair.defender, alliedUnits: pair.alliedUnits, stepBackTo: GetRetreatVector(pair.attacker, pair.defender)))
-                .ForEach(pair => pair.alliedUnits.ForEach(u => u.Move(pair.stepBackTo, false)));
+                .ForEach(pair => pair.alliedUnits.Where(u => !CanAttackNow(u)).ForEach(u => u.Move(pair.stepBackTo, false)));
         }
+
+        private static bool CanAttackNow(Unit u) => u.GroundWeaponCooldown == 0;
     }
 }

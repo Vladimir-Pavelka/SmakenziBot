@@ -3,6 +3,7 @@
     using System.Linq;
     using BroodWar.Api;
     using NBWTA.Utils;
+    using Utils;
 
     public class WorkersAttackClosestEnemy : BaseBehavior
     {
@@ -30,7 +31,7 @@
         private void GatherBaseMineralFarFromAttacker(Unit worker, Unit attacker)
         {
             if (!BaseMinerals.Any()) return;
-            var farMineral = BaseMinerals.OrderByDescending(m => m.TilePosition.CalcApproximateDistance(attacker.TilePosition)).First();
+            var farMineral = BaseMinerals.MaxBy(m => m.TilePosition.CalcApproximateDistance(attacker.TilePosition));
             worker.Gather(farMineral, false);
         }
     }

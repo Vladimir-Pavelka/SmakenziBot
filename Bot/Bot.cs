@@ -7,6 +7,7 @@
     using Behaviors;
     using Behaviors.BaseBehaviors;
     using Behaviors.CombatBehaviors;
+    using Behaviors.GameBehaviors;
     using BroodWar.Api;
     using BroodWar.Api.Enum;
     using BuildOrder;
@@ -37,6 +38,8 @@
         private readonly AnalyzedMap _analyzedMap;
 
         private readonly IReadOnlyCollection<IBehavior> _behaviors;
+        private int _frameSkip = 2;
+        private int _localSpeed;
 
         public Bot()
         {
@@ -59,19 +62,21 @@
                 new WorkersAttackClosestEnemy(baseLocation),
                 new AttackEnemiesInBase(baseLocation),
                 //new StepBackIfUnderAttack(),
+                new RangedKite(),
                 new IdleFightersAttackClosestEnemy(),
                 new OrderIdleUnitsToAttackSpawnLocations(UnitType.Zerg_Zergling, 6, baseLocation),
                 new OrderIdleUnitsToAttackSpawnLocations(UnitType.Zerg_Hydralisk, 12, baseLocation),
+                new RememberEnemyBuildings(), 
             };
-
-            Game.SendText("black sheep wall");
-
         }
 
         public void OnGameStart()
         {
-            Game.SetLocalSpeed(0);
-            Game.SetFrameSkip(2);
+            //Game.SendText("black sheep wall");
+
+            Game.EnableFlag(Flag.UserInput);
+            Game.SetLocalSpeed(_localSpeed);
+            Game.SetFrameSkip(_frameSkip);
             Game.SetCommandOptimizationLevel(1);
             UnitSpawned.Connect();
             TrainingStarted.Connect();
@@ -80,22 +85,11 @@
 
         public void OnFrame()
         {
-            UpdateEventStreams();
             DrawDebugInfo();
+            ProcessUserInput();
+            UpdateEventStreams();
             ExecuteBuildOrder();
             ExecuteBehaviors();
-        }
-
-        private void UpdateEventStreams()
-        {
-            Game.Events.Where(x => x.Type == EventType.UnitComplete).ForEach(x => _unitSpawned.OnNext(x.Unit));
-            Game.Events.Where(x => x.Type == EventType.UnitDestroy).ForEach(x => _unitDestroyed.OnNext(x.Unit));
-            // TODO: how is lulker morph different?
-            Game.Events.Where(x => x.Type == EventType.UnitMorph).Where(x => x.Unit.Order == OrderType.ZergUnitMorph)
-                .Where(x => x.Unit.TrainingQueue.Any())
-                .ForEach(x => _trainingStarted.OnNext(x.Unit.TrainingQueue.First().Type));
-            Game.Events.Where(x => x.Type == EventType.UnitMorph).Where(x => x.Unit.Order == OrderType.IncompleteBuilding)
-                .ForEach(x => _constructionStarted.OnNext(x.Unit.UnitType.Type));
         }
 
         private void DrawDebugInfo()
@@ -114,6 +108,35 @@
             Draw.MainBuildingPlacements(allResourceDepotPositions);
         }
 
+        private void ProcessUserInput()
+        {
+            if (Game.GetKeyState(Key.Q))
+            {
+                if (_frameSkip > 1) _frameSkip--;
+                else _localSpeed += 5;
+                UpdateGameSpeed();
+            }
+
+            if (Game.GetKeyState(Key.W))
+            {
+                if (_localSpeed > 0) _localSpeed -= 5;
+                else _frameSkip++;
+                UpdateGameSpeed();
+            }
+        }
+
+        private void UpdateEventStreams()
+        {
+            Game.Events.Where(x => x.Type == EventType.UnitComplete).ForEach(x => _unitSpawned.OnNext(x.Unit));
+            Game.Events.Where(x => x.Type == EventType.UnitDestroy).ForEach(x => _unitDestroyed.OnNext(x.Unit));
+            // TODO: how is lulker morph different?
+            Game.Events.Where(x => x.Type == EventType.UnitMorph).Where(x => x.Unit.Order == OrderType.ZergUnitMorph)
+                .Where(x => x.Unit.TrainingQueue.Any())
+                .ForEach(x => _trainingStarted.OnNext(x.Unit.TrainingQueue.First().Type));
+            Game.Events.Where(x => x.Type == EventType.UnitMorph).Where(x => x.Unit.Order == OrderType.IncompleteBuilding)
+                .ForEach(x => _constructionStarted.OnNext(x.Unit.UnitType.Type));
+        }
+
         private void ExecuteBuildOrder()
         {
             if (!_buildOrderSteps.Current.AllPrerequisitesMet()) return;
@@ -126,5 +149,11 @@
 
         private static bool ShouldRetry => Game.FrameCount - _buildOrderLastStepFrame > RetryIntervalFrames;
         private void ExecuteBehaviors() => _behaviors.ForEach(b => b.Execute());
+
+        private void UpdateGameSpeed()
+        {
+            Game.SetFrameSkip(_frameSkip);
+            Game.SetLocalSpeed(_localSpeed);
+        }
     }
 }

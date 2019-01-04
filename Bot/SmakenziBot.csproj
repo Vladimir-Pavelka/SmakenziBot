@@ -80,9 +80,12 @@
     <Compile Include="Behaviors\CombatBehaviors\CombatBehavior.cs" />
     <Compile Include="Behaviors\CombatBehaviors\FocusFire.cs" />
     <Compile Include="Behaviors\CombatBehaviors\IdleFightersAttackClosestEnemy.cs" />
+    <Compile Include="Behaviors\CombatBehaviors\RangedKite.cs" />
     <Compile Include="Behaviors\CombatBehaviors\RegroupBeforeEngagement.cs" />
     <Compile Include="Behaviors\CombatBehaviors\RetreatIfOutnumbered.cs" />
     <Compile Include="Behaviors\CombatBehaviors\StepBackIfUnderAttack.cs" />
+    <Compile Include="Behaviors\GameBehaviors\GameBehavior.cs" />
+    <Compile Include="Behaviors\GameBehaviors\RememberEnemyBuildings.cs" />
     <Compile Include="Behaviors\IBehavior.cs" />
     <Compile Include="Behaviors\BaseBehaviors\IdleWorkersToMineral.cs" />
     <Compile Include="Behaviors\BaseBehaviors\ThreeWorkersOnGas.cs" />
@@ -94,6 +97,9 @@
     <Compile Include="BuildOrder\Steps\CancelConstructBuildingStep.cs" />
     <Compile Include="BuildOrder\Steps\ConstructBuildingStep.cs" />
     <Compile Include="BuildOrder\Steps\MorphUpgradeBuildingStep.cs" />
+    <Compile Include="GameMemory.cs" />
+    <Compile Include="Squad.cs" />
+    <Compile Include="Utils\EnumerableExtensions.cs" />
     <Compile Include="Utils\TerrainAnalyzerAdapter.cs" />
     <Compile Include="Utils\Distances.cs" />
     <Compile Include="Utils\Draw.cs" />
@@ -105,7 +111,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuildOrder\Steps\ResearchUpgradeStep.cs" />
     <Compile Include="BuildOrder\Prerequisities\ResourcePrerequisite.cs" />
-    <Compile Include="Utils\Extensions.cs" />
+    <Compile Include="Utils\UnitExtensions.cs" />
     <Compile Include="BuildOrder\Steps\Step.cs" />
     <Compile Include="BuildOrder\StepExecutor.cs" />
     <Compile Include="BuildOrder\Prerequisities\UnitExistsPrerequisite.cs" />
