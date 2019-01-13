@@ -59,5 +59,13 @@
 
             return Color.FromArgb(r, g, b);
         }
+
+        public static void Region(MapRegion region)
+        {
+            var avgX = (int)Math.Round(region.ContentTiles.Average(t => t.x));
+            var avgY = (int)Math.Round(region.ContentTiles.Average(t => t.y));
+            var regionCenter = new WalkPosition(avgX, avgY).ToPixelTile();
+            Game.DrawCircle(regionCenter, 50, Color.Black, false);
+        }
     }
 }

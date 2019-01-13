@@ -21,7 +21,7 @@
 
         protected IEnumerable<Unit> EnemiesInBase => Game.Enemy.Units.Where(IsInBase);
         protected IEnumerable<Unit> WorkersNearMineralLine => BaseWorkers.Where(IsNearMineralLine);
-        protected bool IsInBase(Unit u) => u.TilePosition.CalcApproximateDistance(BasePosition) < 15;
+        protected bool IsInBase(Unit u) => u.TilePosition.CalcApproximateDistance(BasePosition) < 30;
         protected bool IsNearMineralLine(Unit u) => BaseWorkers.Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Any(w => w.TilePosition.CalcApproximateDistance(u.TilePosition) < 1);
 
         private (IEnumerable<Unit> baseWorkers, int frameCount) _baseWorkers = (null, -1);

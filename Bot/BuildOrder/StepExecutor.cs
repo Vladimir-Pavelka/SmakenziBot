@@ -33,7 +33,7 @@
                 case ConstructBuildingStep constructStep:
                     {
                         var builder = GetFreeDrone();
-                        var buildSite = FindBuildSite(builder, constructStep.Target);
+                        var buildSite = constructStep.BuildLocation ?? FindBuildSite(builder, constructStep.Target);
                         builder.Build(constructStep.Target, buildSite);
                         _constructionStarted.Where(x => x == constructStep.Target).Take(1).Subscribe(x => CompleteStep(step));
                         return;

@@ -29,7 +29,10 @@
         private static IReadOnlyCollection<Unit> EnemyUnitsInSight(Unit unit)
         {
             var unitsSightRange = Game.Self.SightRange(unit.UnitType.Type) + 32;
-            return unit.UnitsInRadius(unitsSightRange).Where(Game.Enemy.Units.Contains).ToList();
+            return unit.UnitsInRadius(unitsSightRange)
+                .Where(Game.Enemy.Units.Contains)
+                .Where(u => !u.IsCloaked)
+                .ToList();
         }
 
         private Unit GetHighestPrioTarget(Unit attacker, IEnumerable<Unit> candidateTargets) =>
@@ -63,7 +66,7 @@
 
         private static bool ShouldKite(Unit attacker, Unit target)
         {
-            if (target.GroundRange() >= attacker.SelfGroundRange()) return false;
+            if (target.GroundRangePx() >= attacker.SelfGroundRangePx()) return false;
             if (target.UnitType.IsBuilding) return false;
             if (target.UnitType.IsWorker) return false;
             if (CanAttackNow(attacker)) return false;
@@ -98,7 +101,7 @@
 
         private static double TimeToReachShootingRange(Unit attacker, Unit target)
         {
-            var attackRange = attacker.SelfGroundRange();
+            var attackRange = attacker.SelfGroundRangePx();
             var moveSpeed = attacker.SelfTopSpeed();
             var distanceToTarget = attacker.Distance(target);
             return Math.Max((distanceToTarget - attackRange) / moveSpeed, 0);
@@ -106,8 +109,15 @@
 
         private static void Kite(Unit kiter, Unit target)
         {
-            var fleeTo = GetRetreatVector(target, kiter);
+            const int extraDistance = 32;
+            var retreatVector = GetRetreatVector(target, kiter);
+            var wantedDistance = kiter.SelfGroundRangePx() + extraDistance;
+            var fleeToX = Round(retreatVector.X * wantedDistance + target.Position.X);
+            var fleeToY = Round(retreatVector.Y * wantedDistance + target.Position.Y);
+            var fleeTo = new Position(fleeToX, fleeToY);
             kiter.Move(fleeTo, false);
         }
+
+        private static int Round(double x) => (int)Math.Round(x);
     }
 }

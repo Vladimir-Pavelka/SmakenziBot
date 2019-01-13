@@ -1,5 +1,6 @@
 ﻿namespace SmakenziBot.BuildOrder
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
@@ -9,7 +10,30 @@
 
     public class BuildOrderSteps
     {
-        private static IEnumerable<Step> GetSteps()
+        private readonly TerrainStrategy _terrainStrategy;
+        private static readonly Random Rnd = new Random();
+
+        public BuildOrderSteps(TerrainStrategy terrainStrategy)
+        {
+            _stepEnumerator = GetSteps().GetEnumerator();
+            _terrainStrategy = terrainStrategy;
+        }
+
+        private Step CreepColonyNearChoke()
+        {
+            var mainChoke = _terrainStrategy.ChokesBetweenMainAndNaturals.First();
+            var basePosition = Game.Self.StartLocation;
+            var buildLocation = Enumerable.Range(-20, 40).Select(x => basePosition.X + x + (x > 0 ? 2 : 0))
+                .SelectMany(x => Enumerable.Range(-20, 40).Select(y => basePosition.Y + y + (y > 0 ? 2 : 0)).Select(y => new TilePosition(x, y)))
+                .OrderBy(mainChoke.ContentTiles.First().AsBuildTile().CalcApproximateDistance)
+                .Where(site => Game.CanBuildHere(site, UnitType.Zerg_Creep_Colony, null, true))
+                .Skip(Rnd.Next(10))
+                .First();
+
+            return new ConstructBuildingStep(UnitType.Zerg_Creep_Colony, buildLocation);
+        }
+
+        private IEnumerable<Step> GetSteps()
         {
             //for (var x = 0; x < 5; x++) yield return Make.Drone;
             //yield return Make.Overlord;
@@ -41,11 +65,11 @@
             yield return Make.MuscularAugments;
             yield return Make.Overlord;
             for (var x = 0; x < 8; x++) yield return Make.Hydralisk;
-            yield return Make.CreepColony;
+            yield return CreepColonyNearChoke();
             yield return Make.Overlord;
             yield return Make.SunkenColony;
             yield return Make.GroovedSpines;
-            yield return Make.CreepColony;
+            yield return CreepColonyNearChoke();
             yield return Make.EvolutionChamber;
             for (var x = 0; x < 2; x++) yield return Make.Hydralisk;
             yield return Make.SunkenColony;
@@ -89,15 +113,15 @@
             Game.Self.Units.Where(u => u.UnitType.Type == wantedType).Where(u =>
                 u.TilePosition.CalcApproximateDistance(Game.Self.StartLocation) < 15);
 
-        private static readonly IEnumerator<Step> StepEnumerator = GetSteps().GetEnumerator();
+        private readonly IEnumerator<Step> _stepEnumerator;
 
         public Step Current
         {
             get
             {
-                while (StepEnumerator.Current == null) StepEnumerator.MoveNext();
-                if (StepEnumerator.Current.IsCompleted) StepEnumerator.MoveNext();
-                return StepEnumerator.Current;
+                while (_stepEnumerator.Current == null) _stepEnumerator.MoveNext();
+                if (_stepEnumerator.Current.IsCompleted) _stepEnumerator.MoveNext();
+                return _stepEnumerator.Current;
             }
         }
     }

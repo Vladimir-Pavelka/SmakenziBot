@@ -18,7 +18,7 @@
 
     public class Bot
     {
-        private readonly BuildOrderSteps _buildOrderSteps = new BuildOrderSteps();
+        private readonly BuildOrderSteps _buildOrderSteps;
         private readonly StepExecutor _stepExecutor;
         private static int _buildOrderLastStepFrame;
         private const int RetryIntervalFrames = 200;
@@ -36,6 +36,7 @@
         public IConnectableObservable<UnitType> ConstructionStarted { get; }
 
         private readonly AnalyzedMap _analyzedMap;
+        private readonly TerrainStrategy _terrainStrategy;
 
         private readonly IReadOnlyCollection<IBehavior> _behaviors;
         private int _frameSkip = 2;
@@ -45,6 +46,8 @@
         {
             //MapExporter.ExportMap();
             _analyzedMap = TerrainAnalyzerAdapter.Get();
+            _terrainStrategy = new TerrainStrategy(_analyzedMap);
+            _buildOrderSteps = new BuildOrderSteps(_terrainStrategy);
 
             UnitSpawned = _unitSpawned.Publish();
             UnitDestroyed = _unitDestroyed.Publish();
@@ -64,9 +67,10 @@
                 //new StepBackIfUnderAttack(),
                 new RangedKite(),
                 new IdleFightersAttackClosestEnemy(),
-                new OrderIdleUnitsToAttackSpawnLocations(UnitType.Zerg_Zergling, 6, baseLocation),
-                new OrderIdleUnitsToAttackSpawnLocations(UnitType.Zerg_Hydralisk, 12, baseLocation),
-                new RememberEnemyBuildings(), 
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, baseLocation),
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 12, baseLocation),
+                new RememberEnemyBuildings(),
+                //new IdleFightersGuardEntrance(baseLocation, _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault()),
             };
         }
 
@@ -94,6 +98,7 @@
 
         private void DrawDebugInfo()
         {
+            _terrainStrategy.MyNaturals.ForEach(Draw.Region);
             //Draw.Regions(_analyzedMap.MapRegions);
             //Draw.Chokes(_analyzedMap.ChokeRegions.SelectMany(ch => ch.MinWidthWalkTilesLine));
             _analyzedMap.ChokeRegions.Select(ch => ch.MinWidthWalkTilesLine).ForEach(Draw.ChokeLine);

@@ -2,7 +2,6 @@
 {
     using System.Linq;
     using BroodWar.Api;
-    using NBWTA.Utils;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
@@ -10,19 +9,26 @@
     {
         public override void Execute()
         {
-            MyCombatUnits.Where(u => u.IsIdle).Where(IsOutsideOfBase).ForEach(u =>
-            {
-                if (Game.Enemy.Units.All(eu => eu.UnitType.Type == UnitType.Unknown))
-                {
-                    if (!GameMemory.EnemyBuildings.Any()) return;
-                    var closestEnemyBuilding = GameMemory.EnemyBuildings
-                        .MinBy(b => u.Position.CalcApproximateDistance(b));
-                    u.Attack(closestEnemyBuilding, false);
-                    return;
-                }
+            var triggeringUnits = MyCombatUnits.Where(u => u.IsIdle).Where(IsOutsideOfBase).ToList();
+            if (!triggeringUnits.Any()) return;
 
-                var closestEnemyUnit = Game.Enemy.Units.ClosestTo(u);
-                u.Attack(closestEnemyUnit.Position, false);
+            var visibleEnemyUnits = Game.Enemy.Units
+                .Where(eu => eu.UnitType.Type != UnitType.Unknown)
+                .Where(eu => !eu.IsCloaked)
+                .ToList();
+
+            if (visibleEnemyUnits.Any())
+            {
+                triggeringUnits.ForEach(u => u.Attack(visibleEnemyUnits.ClosestTo(u).Position, false));
+                return;
+            }
+
+            if (!GameMemory.EnemyBuildings.Any()) return;
+
+            triggeringUnits.ForEach(u =>
+            {
+                var closestEnemyBuilding = GameMemory.EnemyBuildings.MinBy(b => u.Position.CalcApproximateDistance(b));
+                u.Attack(closestEnemyBuilding, false);
             });
         }
 

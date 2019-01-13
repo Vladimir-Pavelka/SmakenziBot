@@ -13,7 +13,8 @@
         public override void Execute()
         {
             if (!EnemiesInBase.Any()) return;
-            BaseCombatUnits.Where(u => u.IsIdle).ForEach(u => u.Attack(EnemiesInBase.First().Position, false));
+            BaseCombatUnits.Where(u => u.IsIdle)
+                .ForEach(u => u.Attack(EnemiesInBase.First().Position, false));
         }
     }
 }

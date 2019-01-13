@@ -25,8 +25,8 @@
         public static bool IsTraining(this Unit unit, UnitType wantedType) =>
             unit.TrainingQueue.Any() && unit.TrainingQueue.First().Type == wantedType;
 
-        public static int GroundRange(this Unit unit) => unit.UnitType.GroundWeapon.MaxRange;
-        public static int SelfGroundRange(this Unit unit) => Game.Self.WeaponMaxRange(unit.UnitType.GroundWeapon);
+        public static int GroundRangePx(this Unit unit) => unit.UnitType.GroundWeapon.MaxRange;
+        public static int SelfGroundRangePx(this Unit unit) => Game.Self.WeaponMaxRange(unit.UnitType.GroundWeapon);
         public static double SelfTopSpeed(this Unit unit) => Game.Self.TopSpeed(unit.UnitType.Type);
         public static bool Is(this Unit unit, UnitType unitType) => unit.UnitType.Type == unitType;
     }

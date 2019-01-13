@@ -1,5 +1,6 @@
 ﻿namespace SmakenziBot.Behaviors.CombatBehaviors
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
@@ -14,10 +15,16 @@
         protected Unit GetClosestEnemyAttacker(Unit origin) => Game.Enemy.Units.Where(u => u.UnitType.CanAttack)
             .MinBy(u => u.TilePosition.CalcApproximateDistance(origin.TilePosition));
 
-        protected static Position GetRetreatVector(Unit attacker, Unit defender)
+        protected static (double X, double Y) GetRetreatVector(Unit attacker, Unit defender)
         {
-            var stepBackTo = defender.Position - attacker.Position + defender.Position;
-            return stepBackTo;
+            var attackerToDefenderVector = defender.Position - attacker.Position;
+            var vectorLength = attackerToDefenderVector.CalcLength();
+
+            var unitLengthVector =
+                (attackerToDefenderVector.X / vectorLength,
+                attackerToDefenderVector.Y / vectorLength);
+
+            return unitLengthVector;
         }
     }
 }

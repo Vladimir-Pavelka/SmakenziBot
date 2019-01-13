@@ -75,7 +75,8 @@
     <Compile Include="Behaviors\BaseBehaviors\AttackEnemiesInBase.cs" />
     <Compile Include="Behaviors\BaseBehaviors\BaseBehavior.cs" />
     <Compile Include="Behaviors\BaseBehaviors\CounterAttackStackWorkers.cs" />
-    <Compile Include="Behaviors\BaseBehaviors\OrderIdleUnitsToAttackSpawnLocations.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\IdleFightersGuardEntrance.cs" />
+    <Compile Include="Behaviors\BaseBehaviors\OrderIdleUnitsToAttack.cs" />
     <Compile Include="Behaviors\BaseBehaviors\WorkersAttackClosestEnemy.cs" />
     <Compile Include="Behaviors\CombatBehaviors\CombatBehavior.cs" />
     <Compile Include="Behaviors\CombatBehaviors\FocusFire.cs" />
@@ -99,7 +100,9 @@
     <Compile Include="BuildOrder\Steps\MorphUpgradeBuildingStep.cs" />
     <Compile Include="GameMemory.cs" />
     <Compile Include="Squad.cs" />
+    <Compile Include="TerrainStrategy.cs" />
     <Compile Include="Utils\EnumerableExtensions.cs" />
+    <Compile Include="Utils\PositionExtensions.cs" />
     <Compile Include="Utils\TerrainAnalyzerAdapter.cs" />
     <Compile Include="Utils\Distances.cs" />
     <Compile Include="Utils\Draw.cs" />
@@ -117,6 +120,7 @@
     <Compile Include="BuildOrder\Prerequisities\UnitExistsPrerequisite.cs" />
     <Compile Include="Utils\UnitTypes.cs" />
     <Compile Include="Utils\UpgradeTypes.cs" />
+    <Compile Include="Utils\UtilExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
