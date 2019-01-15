@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using BroodWar.Api.Enum;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public static class UnitExtensions
@@ -29,5 +30,11 @@
         public static int SelfGroundRangePx(this Unit unit) => Game.Self.WeaponMaxRange(unit.UnitType.GroundWeapon);
         public static double SelfTopSpeed(this Unit unit) => Game.Self.TopSpeed(unit.UnitType.Type);
         public static bool Is(this Unit unit, UnitType unitType) => unit.UnitType.Type == unitType;
+
+        public static IEnumerable<Weapon> Weapons(this Unit u)
+        {
+            if (u.UnitType.GroundWeapon.Type != WeaponType.None) yield return u.UnitType.GroundWeapon;
+            if (u.UnitType.AirWeapon.Type != WeaponType.None) yield return u.UnitType.AirWeapon;
+        }
     }
 }

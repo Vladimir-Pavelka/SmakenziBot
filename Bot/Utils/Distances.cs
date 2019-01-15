@@ -13,6 +13,14 @@
             return Math.Sqrt(xDistance * xDistance + yDistance * yDistance);
         }
 
+        public static double Euclidean((int x, int y) left, (int x, int y) right)
+        {
+            var xDistance = left.x - right.x;
+            var yDistance = left.y - right.y;
+
+            return Math.Sqrt(xDistance * xDistance + yDistance * yDistance);
+        }
+
         public static double EuclideanSquared(TilePosition left, TilePosition right)
         {
             var xDistance = left.X - right.X;

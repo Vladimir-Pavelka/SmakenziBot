@@ -22,7 +22,11 @@
                 var target = GetHighestPrioTarget(attacker, candidateTargets);
 
                 if (ShouldKite(attacker, target)) Kite(attacker, target);
-                else attacker.Attack(target, false);
+                else
+                {
+                    MyUnits.SetActivity(attacker, nameof(RangedKite));
+                    attacker.Attack(target, false);
+                }
             }
         }
 
@@ -115,6 +119,7 @@
             var fleeToX = Round(retreatVector.X * wantedDistance + target.Position.X);
             var fleeToY = Round(retreatVector.Y * wantedDistance + target.Position.Y);
             var fleeTo = new Position(fleeToX, fleeToY);
+            MyUnits.SetActivity(kiter, nameof(RangedKite));
             kiter.Move(fleeTo, false);
         }
 

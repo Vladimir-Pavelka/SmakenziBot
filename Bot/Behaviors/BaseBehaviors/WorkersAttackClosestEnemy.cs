@@ -2,12 +2,13 @@
 {
     using System.Linq;
     using BroodWar.Api;
+    using NBWTA.Result;
     using NBWTA.Utils;
     using Utils;
 
     public class WorkersAttackClosestEnemy : BaseBehavior
     {
-        public WorkersAttackClosestEnemy(TilePosition basePosition) : base(basePosition)
+        public WorkersAttackClosestEnemy(MapRegion basePosition) : base(basePosition)
         {
         }
 
@@ -20,7 +21,11 @@
                 if (!closeEnemyUnits.Any()) return;
                 var closeAlliedUnits = closeUnits.Where(Game.Self.Units.Contains)
                     .Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Where(w => !ShouldFlee(w));
-                closeAlliedUnits.ForEach(u => u.Attack(closeEnemyUnits.First(), false));
+                closeAlliedUnits.ForEach(u =>
+                {
+                    MyUnits.SetActivity(u, nameof(WorkersAttackClosestEnemy));
+                    u.Attack(closeEnemyUnits.First(), false);
+                });
 
                 if (ShouldFlee(worker)) GatherBaseMineralFarFromAttacker(worker, closeEnemyUnits.First());
             });

@@ -6,7 +6,7 @@
 
     public static class UtilExtensions
     {
-        public static (int x, int y) AveragePosition(this IReadOnlyCollection<(int x, int y)> points)
+        public static (int x, int y) Average(this IReadOnlyCollection<(int x, int y)> points)
         {
             var avgX = (int)Math.Round(points.Average(t => t.x));
             var avgY = (int)Math.Round(points.Average(t => t.y));

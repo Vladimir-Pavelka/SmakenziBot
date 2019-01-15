@@ -1,13 +1,13 @@
 ﻿namespace SmakenziBot.Behaviors.BaseBehaviors
 {
     using System.Linq;
-    using BroodWar.Api;
+    using NBWTA.Result;
     using NBWTA.Utils;
     using Utils;
 
     public class CounterAttackStackWorkers : BaseBehavior
     {
-        public CounterAttackStackWorkers(TilePosition basePosition) : base(basePosition)
+        public CounterAttackStackWorkers(MapRegion basePosition) : base(basePosition)
         {
         }
 

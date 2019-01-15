@@ -2,11 +2,19 @@
 {
     using System.Linq;
     using BroodWar.Api;
+    using NBWTA.Result;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class IdleFightersAttackClosestEnemy : CombatBehavior
     {
+        private readonly MapRegion _baseLocation;
+
+        public IdleFightersAttackClosestEnemy(MapRegion baseLocation)
+        {
+            _baseLocation = baseLocation;
+        }
+
         public override void Execute()
         {
             var triggeringUnits = MyCombatUnits.Where(u => u.IsIdle).Where(IsOutsideOfBase).ToList();
@@ -19,7 +27,11 @@
 
             if (visibleEnemyUnits.Any())
             {
-                triggeringUnits.ForEach(u => u.Attack(visibleEnemyUnits.ClosestTo(u).Position, false));
+                triggeringUnits.ForEach(u =>
+                {
+                    MyUnits.SetActivity(u, nameof(IdleFightersAttackClosestEnemy) + "Unit");
+                    u.Attack(visibleEnemyUnits.ClosestTo(u).Position, false);
+                });
                 return;
             }
 
@@ -28,10 +40,11 @@
             triggeringUnits.ForEach(u =>
             {
                 var closestEnemyBuilding = GameMemory.EnemyBuildings.MinBy(b => u.Position.CalcApproximateDistance(b));
+                MyUnits.SetActivity(u, nameof(IdleFightersAttackClosestEnemy) + "Building");
                 u.Attack(closestEnemyBuilding, false);
             });
         }
 
-        private static bool IsOutsideOfBase(Unit u) => u.TilePosition.CalcApproximateDistance(Game.Self.StartLocation) > 15;
+        private bool IsOutsideOfBase(Unit u) => !_baseLocation.ContentTiles.Contains(u.Position.ToWalkTile().AsTuple());
     }
 }

@@ -3,14 +3,15 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using NBWTA.Result;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public abstract class BaseBehavior : IBehavior
     {
-        protected TilePosition BasePosition { get; }
+        protected MapRegion BasePosition { get; }
 
-        protected BaseBehavior(TilePosition basePosition)
+        protected BaseBehavior(MapRegion basePosition)
         {
             BasePosition = basePosition;
         }
@@ -21,7 +22,7 @@
 
         protected IEnumerable<Unit> EnemiesInBase => Game.Enemy.Units.Where(IsInBase);
         protected IEnumerable<Unit> WorkersNearMineralLine => BaseWorkers.Where(IsNearMineralLine);
-        protected bool IsInBase(Unit u) => u.TilePosition.CalcApproximateDistance(BasePosition) < 30;
+        protected bool IsInBase(Unit u) => BasePosition.ContentTiles.Contains(u.Position.ToWalkTile().AsTuple());
         protected bool IsNearMineralLine(Unit u) => BaseWorkers.Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Any(w => w.TilePosition.CalcApproximateDistance(u.TilePosition) < 1);
 
         private (IEnumerable<Unit> baseWorkers, int frameCount) _baseWorkers = (null, -1);
@@ -44,7 +45,7 @@
         protected bool HasBuilding(UnitType buildingType) => BaseBuildings.Any(x => x.UnitType.Type == buildingType);
         protected IEnumerable<Unit> BaseBuildings => Game.Self.Units.Where(x => x.UnitType.IsBuilding).Where(x => x.IsCompleted).Where(IsInBase);
 
-        protected IEnumerable<Unit> BaseCombatUnits => Game.Self.Units.Where(x => x.IsFighter()).Where(IsInBase);
+        protected IEnumerable<Unit> BaseCombatUnits => Game.Self.Units.Where(x => x.IsFighter()).Where(IsInBase).Where(u => !u.UnitType.IsBuilding);
 
         protected void GatherClosestMineral(Unit worker)
         {

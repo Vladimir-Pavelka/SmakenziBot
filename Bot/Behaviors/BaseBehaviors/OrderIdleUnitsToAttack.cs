@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
+    using NBWTA.Result;
     using NBWTA.Utils;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
@@ -12,7 +13,7 @@
         private readonly UnitType _unitType;
         private readonly int _minCount;
 
-        public OrderIdleUnitsToAttack(UnitType unitType, int minCount, TilePosition basePosition) : base(basePosition)
+        public OrderIdleUnitsToAttack(UnitType unitType, int minCount, MapRegion basePosition) : base(basePosition)
         {
             _unitType = unitType;
             _minCount = minCount;
@@ -38,7 +39,11 @@
             var closestEnemyBuilding = GameMemory.EnemyBuildings.MinBy(b =>
                 b.CalcApproximateDistance(idleUnitsOfWantedTypeInMyBase.First().Position));
 
-            idleUnitsOfWantedTypeInMyBase.ForEach(u => u.Attack(closestEnemyBuilding, false));
+            idleUnitsOfWantedTypeInMyBase.ForEach(u =>
+            {
+                MyUnits.SetActivity(u, nameof(OrderIdleUnitsToAttack));
+                u.Attack(closestEnemyBuilding, false);
+            });
         }
 
         private static void ShiftAttackAllStartLocations(IEnumerable<Unit> units)
@@ -47,7 +52,11 @@
                 .Select(loc => new Position(loc.X * 32, loc.Y * 32))
                 .ToList();
 
-            units.ForEach(x => notMyBaseStartLocations.ForEach(position => x.Attack(position, true)));
+            units.ForEach(u => notMyBaseStartLocations.ForEach(position =>
+            {
+                MyUnits.SetActivity(u, nameof(OrderIdleUnitsToAttack));
+                u.Attack(position, true);
+            }));
         }
     }
 }

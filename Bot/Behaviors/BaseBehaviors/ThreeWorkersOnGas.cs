@@ -1,12 +1,12 @@
 ﻿namespace SmakenziBot.Behaviors.BaseBehaviors
 {
     using System.Linq;
-    using BroodWar.Api;
+    using NBWTA.Result;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class ThreeWorkersOnGas : BaseBehavior
     {
-        public ThreeWorkersOnGas(TilePosition basePosition) : base(basePosition)
+        public ThreeWorkersOnGas(MapRegion basePosition) : base(basePosition)
         {
         }
 

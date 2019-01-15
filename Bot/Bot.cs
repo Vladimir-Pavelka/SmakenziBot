@@ -56,7 +56,7 @@
 
             _stepExecutor = new StepExecutor(TrainingStarted, ConstructionStarted);
 
-            var baseLocation = Game.Self.StartLocation;
+            var baseLocation = _terrainStrategy.MyStartRegion;
             _behaviors = new IBehavior[]
             {
                 new IdleWorkersToMineral(baseLocation),
@@ -66,11 +66,12 @@
                 new AttackEnemiesInBase(baseLocation),
                 //new StepBackIfUnderAttack(),
                 new RangedKite(),
-                new IdleFightersAttackClosestEnemy(),
+                new IdleFightersAttackClosestEnemy(baseLocation),
                 new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, baseLocation),
                 new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 12, baseLocation),
                 new RememberEnemyBuildings(),
-                //new IdleFightersGuardEntrance(baseLocation, _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault()),
+                new IdleFightersGuardEntrance(baseLocation, _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault()),
+                new TowersAttackLowestHp(),
             };
         }
 
@@ -102,6 +103,8 @@
             //Draw.Regions(_analyzedMap.MapRegions);
             //Draw.Chokes(_analyzedMap.ChokeRegions.SelectMany(ch => ch.MinWidthWalkTilesLine));
             _analyzedMap.ChokeRegions.Select(ch => ch.MinWidthWalkTilesLine).ForEach(Draw.ChokeLine);
+
+            MyUnits.TrackedUnits.ForEach(kvp => Game.DrawText(kvp.Key.Position, kvp.Value));
 
             var resourceClusters = _analyzedMap.MapRegions.SelectMany(r => r.ResourceSites)
                 .Select(s => s.MineralsBuildTiles.Concat(s.GeysersBuildTiles));

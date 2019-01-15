@@ -25,7 +25,7 @@
             var basePosition = Game.Self.StartLocation;
             var buildLocation = Enumerable.Range(-20, 40).Select(x => basePosition.X + x + (x > 0 ? 2 : 0))
                 .SelectMany(x => Enumerable.Range(-20, 40).Select(y => basePosition.Y + y + (y > 0 ? 2 : 0)).Select(y => new TilePosition(x, y)))
-                .OrderBy(mainChoke.ContentTiles.First().AsBuildTile().CalcApproximateDistance)
+                .OrderBy(mainChoke.ContentTiles.First().AsWalkTile().ToBuildTile().CalcApproximateDistance)
                 .Where(site => Game.CanBuildHere(site, UnitType.Zerg_Creep_Colony, null, true))
                 .Skip(Rnd.Next(10))
                 .First();
