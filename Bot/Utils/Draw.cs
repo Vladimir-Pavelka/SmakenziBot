@@ -67,5 +67,12 @@
             var regionCenter = new WalkPosition(avgX, avgY).ToPixelTile();
             Game.DrawCircle(regionCenter, 50, Color.Lime, false);
         }
+
+        public static void Natural(MapRegion region)
+        {
+            var resourceSite = region.ResourceSites.First();
+            var mainPlacement = resourceSite.OptimalResourceDepotBuildTile.AsBuildTile().ToPixelTile();
+            Game.DrawText(mainPlacement, " Natural exp");
+        }
     }
 }

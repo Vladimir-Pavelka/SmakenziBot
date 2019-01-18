@@ -18,11 +18,6 @@
 
     public class Bot
     {
-        private readonly BuildOrderSteps _buildOrderSteps;
-        private readonly StepExecutor _stepExecutor;
-        private static int _buildOrderLastStepFrame;
-        private const int RetryIntervalFrames = 200;
-
         private readonly Subject<Unit> _unitSpawned = new Subject<Unit>();
         public IConnectableObservable<Unit> UnitSpawned { get; }
 
@@ -37,6 +32,7 @@
 
         private readonly AnalyzedMap _analyzedMap;
         private readonly TerrainStrategy _terrainStrategy;
+        private readonly BuildOrderScheduler _buildOrderScheduler;
 
         private readonly IReadOnlyCollection<IBehavior> _behaviors;
         private int _frameSkip = 2;
@@ -47,38 +43,66 @@
             //MapExporter.ExportMap();
             _analyzedMap = TerrainAnalyzerAdapter.Get();
             _terrainStrategy = new TerrainStrategy(_analyzedMap);
-            _buildOrderSteps = new BuildOrderSteps(_terrainStrategy);
 
             UnitSpawned = _unitSpawned.Publish();
             UnitDestroyed = _unitDestroyed.Publish();
             TrainingStarted = _trainingStarted.Publish();
             ConstructionStarted = _constructionStarted.Publish();
 
-            _stepExecutor = new StepExecutor(TrainingStarted, ConstructionStarted);
+            _buildOrderScheduler = new BuildOrderScheduler(TrainingStarted, ConstructionStarted, _terrainStrategy);
 
-            var baseLocation = _terrainStrategy.MyStartRegion;
+            var entranceToNaturalExp = _terrainStrategy.MyNaturals.FirstOrDefault()?.AdjacentChokes
+                .Except(_terrainStrategy.ChokesBetweenMainAndNaturals).FirstOrDefault();
+            var hasEntranceToNaturalExp = entranceToNaturalExp != null;
+            var entranceToGuard = hasEntranceToNaturalExp
+                ? entranceToNaturalExp
+                : _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault();
+
+            var main = _terrainStrategy.MyStartRegion;
             _behaviors = new IBehavior[]
             {
-                new IdleWorkersToMineral(baseLocation),
-                new ThreeWorkersOnGas(baseLocation),
+                new IdleWorkersToMineral(main),
+                new ThreeWorkersOnGas(main),
                 //new CounterAttackStackWorkers(baseLocation),
-                new WorkersAttackClosestEnemy(baseLocation),
-                new AttackEnemiesInBase(baseLocation),
+                new WorkersAttackClosestEnemy(main),
+                new AttackEnemiesInBase(main),
                 //new StepBackIfUnderAttack(),
                 new RangedKite(),
-                new IdleFightersAttackClosestEnemy(baseLocation),
-                new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, baseLocation),
-                new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 12, baseLocation),
                 new RememberEnemyBuildings(),
-                new IdleFightersGuardEntrance(baseLocation, _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault()),
                 new TowersAttackLowestHp(),
             };
+
+            if (!_terrainStrategy.MyNaturals.Any())
+            {
+                _behaviors = _behaviors.Concat(new IBehavior[]
+                {
+                    new IdleFightersGuardEntrance(main, entranceToGuard),
+                    new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, main),
+                    new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, main),
+
+                }).ToArray();
+                return;
+            }
+
+            var natural = _terrainStrategy.MyNaturals.First();
+            _behaviors = _behaviors.Concat(new IBehavior[]
+            {
+                new IdleWorkersToMineral(natural),
+                new WorkersAttackClosestEnemy(natural),
+                new AttackEnemiesInBase(natural),
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, natural),
+                new IdleFightersGuardEntrance(natural, entranceToGuard),
+                new FightersRallyPoint(main, natural),
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, natural),
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, natural),
+                new IdleFightersAttackClosestEnemy(natural, _terrainStrategy),
+                new BalanceWorkersMainNatural(main, natural),
+            }).ToArray();
         }
 
         public void OnGameStart()
         {
             //Game.SendText("black sheep wall");
-
             Game.EnableFlag(Flag.UserInput);
             Game.SetLocalSpeed(_localSpeed);
             Game.SetFrameSkip(_frameSkip);
@@ -93,13 +117,13 @@
             DrawDebugInfo();
             ProcessUserInput();
             UpdateEventStreams();
-            ExecuteBuildOrder();
+            ProcessBuildOrder();
             ExecuteBehaviors();
         }
 
         private void DrawDebugInfo()
         {
-            _terrainStrategy.MyNaturals.ForEach(Draw.Region);
+            _terrainStrategy.MyNaturals.ForEach(Draw.Natural);
             //Draw.Regions(_analyzedMap.MapRegions);
             //Draw.Chokes(_analyzedMap.ChokeRegions.SelectMany(ch => ch.MinWidthWalkTilesLine));
             _analyzedMap.ChokeRegions.Select(ch => ch.MinWidthWalkTilesLine).ForEach(Draw.ChokeLine);
@@ -133,6 +157,12 @@
             }
         }
 
+        private void UpdateGameSpeed()
+        {
+            Game.SetFrameSkip(_frameSkip);
+            Game.SetLocalSpeed(_localSpeed);
+        }
+
         private void UpdateEventStreams()
         {
             Game.Events.Where(x => x.Type == EventType.UnitComplete).ForEach(x => _unitSpawned.OnNext(x.Unit));
@@ -145,23 +175,8 @@
                 .ForEach(x => _constructionStarted.OnNext(x.Unit.UnitType.Type));
         }
 
-        private void ExecuteBuildOrder()
-        {
-            if (!_buildOrderSteps.Current.AllPrerequisitesMet()) return;
-            if (!_stepExecutor.IsIdle && !ShouldRetry) return;
+        private void ProcessBuildOrder() => _buildOrderScheduler.OnFrame();
 
-            Game.Write($"Executing step: {_buildOrderSteps.Current}");
-            _stepExecutor.Execute(_buildOrderSteps.Current);
-            _buildOrderLastStepFrame = Game.FrameCount;
-        }
-
-        private static bool ShouldRetry => Game.FrameCount - _buildOrderLastStepFrame > RetryIntervalFrames;
         private void ExecuteBehaviors() => _behaviors.ForEach(b => b.Execute());
-
-        private void UpdateGameSpeed()
-        {
-            Game.SetFrameSkip(_frameSkip);
-            Game.SetLocalSpeed(_localSpeed);
-        }
     }
 }

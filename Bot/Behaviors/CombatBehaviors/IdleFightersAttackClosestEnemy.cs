@@ -1,5 +1,7 @@
 ﻿namespace SmakenziBot.Behaviors.CombatBehaviors
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
     using NBWTA.Result;
@@ -9,10 +11,16 @@
     public class IdleFightersAttackClosestEnemy : CombatBehavior
     {
         private readonly MapRegion _baseLocation;
+        private readonly TerrainStrategy _terrainStrategy;
+        private readonly IReadOnlyList<Position> _allResourceSites;
+        private readonly Random _rnd = new Random();
 
-        public IdleFightersAttackClosestEnemy(MapRegion baseLocation)
+        public IdleFightersAttackClosestEnemy(MapRegion baseLocation, TerrainStrategy terrainStrategy)
         {
             _baseLocation = baseLocation;
+            _terrainStrategy = terrainStrategy;
+            _allResourceSites = terrainStrategy.AllResourceSites
+                .Select(rs => rs.OptimalResourceDepotBuildTile.AsBuildTile().ToPixelTile()).ToList();
         }
 
         public override void Execute()
@@ -35,7 +43,14 @@
                 return;
             }
 
-            if (!GameMemory.EnemyBuildings.Any()) return;
+            if (!GameMemory.EnemyBuildings.Any())
+            {
+                triggeringUnits.ForEach(u =>
+                {
+                    MyUnits.SetActivity(u, nameof(IdleFightersAttackClosestEnemy) + "Searching");
+                    u.Attack(RandomResourceSitePosition, false);
+                });
+            }
 
             triggeringUnits.ForEach(u =>
             {
@@ -46,5 +61,7 @@
         }
 
         private bool IsOutsideOfBase(Unit u) => !_baseLocation.ContentTiles.Contains(u.Position.ToWalkTile().AsTuple());
+
+        private Position RandomResourceSitePosition => _allResourceSites[_rnd.Next(0, _allResourceSites.Count - 1)];
     }
 }

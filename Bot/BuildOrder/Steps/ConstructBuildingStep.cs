@@ -2,21 +2,18 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using BroodWar.Api;
     using Prerequisities;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class ConstructBuildingStep : Step<UnitType>
     {
-        public ConstructBuildingStep(UnitType target, TilePosition buildLocation = null, params Prerequisite[] prerequisites) : this(target, buildLocation, prerequisites.ToList())
+        public ConstructBuildingStep(UnitType target, params Prerequisite[] prerequisites) : this(target, prerequisites.ToList())
         {
         }
 
-        public ConstructBuildingStep(UnitType target, TilePosition buildLocation, IEnumerable<Prerequisite> extraPrerequisites)
+        public ConstructBuildingStep(UnitType target, IEnumerable<Prerequisite> extraPrerequisites)
         {
-            BuildLocation = buildLocation;
-
             var unitType = UnitTypes.All[target];
             var defaultPrerequisites = new Prerequisite[]
             {
@@ -31,7 +28,5 @@
 
             Target = target;
         }
-
-        public TilePosition BuildLocation { get; }
     }
 }

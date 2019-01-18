@@ -1,7 +1,9 @@
 ﻿namespace SmakenziBot.BuildOrder
 {
+    using BroodWar.Api;
     using BroodWar.Api.Enum;
     using Steps;
+    using UnitType = BroodWar.Api.Enum.UnitType;
 
     public static class Make
     {
@@ -10,7 +12,7 @@
         public static MorphUnitStep Zergling => new MorphUnitStep(UnitType.Zerg_Zergling);
         public static MorphUnitStep Hydralisk => new MorphUnitStep(UnitType.Zerg_Hydralisk);
 
-        public static ConstructBuildingStep Hatchery => new ConstructBuildingStep(UnitType.Zerg_Hatchery);
+        //public static ConstructBuildingStep Hatchery => new ConstructBuildingStep(UnitType.Zerg_Hatchery, buildLocation);
         public static ConstructBuildingStep CreepColony => new ConstructBuildingStep(UnitType.Zerg_Creep_Colony);
         public static ConstructBuildingStep Extractor => new ConstructBuildingStep(UnitType.Zerg_Extractor);
         public static ConstructBuildingStep EvolutionChamber => new ConstructBuildingStep(UnitType.Zerg_Evolution_Chamber);
@@ -25,5 +27,7 @@
         public static ResearchUpgradeStep MuscularAugments => new ResearchUpgradeStep(UpgradeType.Muscular_Augments);
         public static ResearchUpgradeStep GroovedSpines => new ResearchUpgradeStep(UpgradeType.Grooved_Spines);
         public static ResearchUpgradeStep MissileAttacks => new ResearchUpgradeStep(UpgradeType.Zerg_Missile_Attacks);
+
+        public static ConstructBuildingStep Hatchery(HatcheryType type) => new HatcheryBuildingStep(type);
     }
 }

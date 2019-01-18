@@ -19,7 +19,7 @@
         public IdleFightersGuardEntrance(MapRegion basePosition, ChokeRegion entrance) : base(basePosition)
         {
             _entrance = entrance;
-            _entranceCenter = _entrance.ContentTiles.Average();
+            _entranceCenter = _entrance.ContentTiles.AveragePosition();
             const int arcRadiusWalkTiles = ArcRadiusPx / 8;
             var gridCircle = GridCircle.YieldIndices(_entranceCenter, arcRadiusWalkTiles);
             _entranceArc = gridCircle

@@ -4,15 +4,15 @@
 
     public class ResourcePrerequisite : Prerequisite
     {
-        private readonly int _minerals;
-        private readonly int _gas;
+        public int Minerals { get; }
+        public int Gas { get; }
 
         public ResourcePrerequisite(int minerals, int gas)
         {
-            _minerals = minerals;
-            _gas = gas;
+            Minerals = minerals;
+            Gas = gas;
         }
 
-        public override bool IsMet() => Game.Self.Minerals >= _minerals && Game.Self.Gas >= _gas;
+        public override bool IsMet() => Game.Self.Minerals >= Minerals && Game.Self.Gas >= Gas;
     }
 }

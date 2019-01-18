@@ -46,6 +46,8 @@
         {
             if (!candidateTarget.IsDetected) return 0;
             var unitType = candidateTarget.UnitType.Type;
+            if (unitType == UnitType.Zerg_Egg) return 0;
+            if (unitType == UnitType.Zerg_Larva) return 0;
             if (HighAttackPriorityUnits.TryGetValue(unitType, out var priority)) return priority;
             if (unitType == UnitType.Protoss_Photon_Cannon || unitType == UnitType.Zerg_Sunken_Colony) return 55;
             if (candidateTarget.IsFighter()) return 50;
@@ -66,6 +68,9 @@
             {UnitType.Protoss_Shuttle, 95},
 
             {UnitType.Protoss_Carrier, 90},
+
+            {UnitType.Zerg_Lurker, 100},
+            {UnitType.Zerg_Mutalisk, 90},
         };
 
         private static bool ShouldKite(Unit attacker, Unit target)

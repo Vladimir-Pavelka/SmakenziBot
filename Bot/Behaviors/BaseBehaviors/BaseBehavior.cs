@@ -51,6 +51,7 @@
         {
             var distanceOrderedMinerals = BaseMinerals.OrderBy(worker.Distance).ToList();
             var closestMineral = distanceOrderedMinerals.FirstOrDefault(x => !x.IsBeingGathered) ?? distanceOrderedMinerals.FirstOrDefault();
+            if (closestMineral == null) closestMineral = Game.Minerals.MinBy(worker.Distance);
             if (closestMineral == null) return;
             worker.Gather(closestMineral, false);
         }

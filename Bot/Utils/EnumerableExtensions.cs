@@ -5,7 +5,8 @@
 
     public static class EnumerableExtensions
     {
-        public static TElem MinBy<TElem>(this IEnumerable<TElem> source, Func<TElem, IComparable> selector)
+        public static TElem MinBy<TElem, TComparable>(this IEnumerable<TElem> source, Func<TElem, TComparable> selector)
+        where TComparable : IComparable
         {
             var hasAny = false;
             var minElem = default(TElem);

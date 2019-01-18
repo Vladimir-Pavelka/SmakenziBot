@@ -12,16 +12,20 @@
 
         public override void Execute()
         {
+            if (!HasBuilding(UnitType.Zerg_Extractor)) return;
+
             var workersGatheringGas = BaseWorkers.Where(w => w.IsGatheringGas).ToList();
-            var hasNotEnough = workersGatheringGas.Count < 3 && HasBuilding(UnitType.Zerg_Extractor);
-            if (hasNotEnough && BaseWorkers.Any())
+            var workersGatheringMinerals = BaseWorkers.Where(w => w.IsGatheringMinerals).ToList();
+            var hasNotEnough = workersGatheringGas.Count < 3;
+            if (hasNotEnough && workersGatheringMinerals.Count > 6 && BaseWorkers.Any())
             {
                 GatherClosestGas(GetWorker());
                 return;
             }
 
             var hasTooMany = workersGatheringGas.Count > 3;
-            if (hasTooMany) GatherClosestMineral(workersGatheringGas.First());
+            if (hasTooMany || workersGatheringMinerals.Count < 6 && workersGatheringGas.Any())
+                GatherClosestMineral(workersGatheringGas.First());
         }
     }
 }
