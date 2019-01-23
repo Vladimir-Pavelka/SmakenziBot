@@ -1,6 +1,7 @@
 ﻿namespace SmakenziBot.Behaviors.BaseBehaviors
 {
     using System.Linq;
+    using BuildOrder.Steps;
     using NBWTA.Result;
     using NBWTA.Utils;
 
@@ -10,10 +11,12 @@
         {
         }
 
-        public override void Execute() => BaseWorkers.Where(w => w.IsIdle).ForEach(w =>
-        {
-            MyUnits.SetActivity(w, nameof(IdleWorkersToMineral));
-            GatherClosestMineral(w);
-        });
+        public override void Execute() => BaseWorkers.Where(w => w.IsIdle)
+            .Where(w => !MyUnits.TrackedUnits.ContainsKey(w) || !MyUnits.TrackedUnits[w].StartsWith("MoveDroneTo"))
+            .ForEach(w =>
+            {
+                MyUnits.SetActivity(w, nameof(IdleWorkersToMineral));
+                GatherClosestMineral(w);
+            });
     }
 }

@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Reactive.Linq;
     using BroodWar.Api;
+    using BroodWar.Api.Enum;
     using Steps;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
@@ -35,6 +36,11 @@
                     {
                         var builder = GetFreeDrone();
                         var buildSite = FindBuildSite(builder, constructStep);
+                        if (!Game.IsExplored(buildSite))
+                        {
+                            builder.Move(buildSite.ToPixelTile(), false);
+                            return;
+                        }
 
                         builder.Build(constructStep.Target, buildSite);
                         _constructionStarted.Where(x => x == constructStep.Target).Take(1).Subscribe(x => CompleteStep(step));
@@ -42,8 +48,15 @@
                     }
                 case ResearchUpgradeStep researchStep:
                     {
-                        var researcher = Game.Self.Units.Where(x => x.UnitType.Type == researchStep.ResearchedBy).First(x => !x.IsResearching);
+                        var researcher = Game.Self.Units.Where(x => x.Is(researchStep.ResearchedBy)).First(x => !x.IsUpgrading);
                         var isSuccess = researcher.PerformUpgrade(researchStep.Research);
+                        if (isSuccess) CompleteStep(step);
+                        return;
+                    }
+                case ResearchTechStep researchStep:
+                    {
+                        var researcher = Game.Self.Units.Where(x => x.Is(researchStep.ResearchedBy)).First(x => !x.IsResearching);
+                        var isSuccess = researcher.Research(researchStep.Research);
                         if (isSuccess) CompleteStep(step);
                         return;
                     }
@@ -64,6 +77,27 @@
                         if (isSuccess) CompleteStep(step);
                         return;
                     }
+                case BoAction actionStep:
+                    {
+                        var drone = GetFreeDrone();
+                        bool isSuccess;
+
+                        switch (actionStep.ActionType)
+                        {
+                            case ActionType.MoveDroneToNatural:
+                                MyUnits.SetActivity(drone, nameof(ActionType.MoveDroneToNatural));
+                                isSuccess = drone.Move(NaturalBuildLocation.ToPixelTile(), false);
+                                if (isSuccess) CompleteStep(step);
+                                return;
+                            case ActionType.MoveDroneToThird:
+                                MyUnits.SetActivity(drone, nameof(ActionType.MoveDroneToThird));
+                                isSuccess = drone.Move(ThirdBuildLocation.ToPixelTile(), false);
+                                if (isSuccess) CompleteStep(step);
+                                return;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
             }
         }
 
@@ -79,10 +113,11 @@
             var buildLocation = Game.GetBuildLocation(UnitTypes.All[building], basePosition, 64, false);
 
             if (building == UnitType.Zerg_Creep_Colony) buildLocation = CreepColonyNearChoke();
-            else if (constructStep is HatcheryBuildingStep hatcheryStep &&
-                     hatcheryStep.HatcheryType == HatcheryType.NaturalExp)
-                buildLocation = _terrainStrategy.MyNaturals.First().ResourceSites.First().OptimalResourceDepotBuildTile
-                    .AsBuildTile();
+            if (constructStep is HatcheryBuildingStep hatcheryStep && hatcheryStep.HatcheryType == HatcheryType.NaturalExp)
+                buildLocation = NaturalBuildLocation;
+
+            if (constructStep is HatcheryBuildingStep hatcheryStepp && hatcheryStepp.HatcheryType == HatcheryType.ThirdExp)
+                buildLocation = ThirdBuildLocation;
 
             if (buildLocation == null) throw new Exception("Could not find suitable build site");
             return buildLocation;
@@ -91,10 +126,20 @@
         private static Unit GetFreeDrone()
         {
             var myDrones = Game.Self.Units.Where(x => x.UnitType.Type == UnitType.Zerg_Drone).ToList();
-            var freeDrones = myDrones.Where(x => !x.IsCarryingMinerals).Where(x => !x.IsGatheringGas).ToList();
+            var freeDrones = myDrones.Where(x => x.IsIdle).Union(myDrones.Where(x => !x.IsCarryingMinerals).Where(x => !x.IsGatheringGas)).ToList();
 
             return freeDrones.Any() ? freeDrones.First() : myDrones.First();
         }
+
+        private TilePosition NaturalBuildLocation => _terrainStrategy.MyNaturals.First().ResourceSites.First()
+            .OptimalResourceDepotBuildTile.AsBuildTile();
+
+        private TilePosition ThirdBuildLocation => _terrainStrategy.AllResourceSites
+            .Except(_terrainStrategy.MyNaturals.SelectMany(n => n.ResourceSites)
+                .Concat(_terrainStrategy.MyStartRegion.ResourceSites))
+            .Where(rs => rs.GeysersBuildTiles.Any())
+            .MinBy(rs => Game.Self.StartLocation.CalcApproximateDistance(rs.OptimalResourceDepotBuildTile.AsBuildTile()))
+            .OptimalResourceDepotBuildTile.AsBuildTile();
 
         private static void MorphLarvaInto(UnitType unitType)
         {

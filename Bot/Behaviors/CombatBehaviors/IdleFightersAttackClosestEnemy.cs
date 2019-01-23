@@ -50,6 +50,7 @@
                     MyUnits.SetActivity(u, nameof(IdleFightersAttackClosestEnemy) + "Searching");
                     u.Attack(RandomResourceSitePosition, false);
                 });
+                return;
             }
 
             triggeringUnits.ForEach(u =>

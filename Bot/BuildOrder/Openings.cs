@@ -32,6 +32,7 @@
             yield return Make.Drone;
             yield return Make.Drone;
             yield return Make.Drone;
+            yield return Do.SendDroneToNatural;
             yield return Make.Hatchery(HatcheryType.NaturalExp);
             yield return Make.SpawningPool;
         }

@@ -12,7 +12,7 @@
 
     public class Step
     {
-        public IEnumerable<Prerequisite> Prerequisites = Enumerable.Empty<Prerequisite>();
+        public IEnumerable<Prerequisite> Prerequisites { get; protected set; } = Enumerable.Empty<Prerequisite>();
         public bool AllPrerequisitesMet() => Prerequisites.All(x => x.IsMet());
         public bool IsCompleted { get; private set; }
 

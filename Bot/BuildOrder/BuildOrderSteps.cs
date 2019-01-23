@@ -8,19 +8,16 @@
     using Steps;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
-    public class BuildOrderSteps
+    public class BuildOrderSteps : IBuildOrder
     {
         private readonly TerrainStrategy _terrainStrategy;
 
         public BuildOrderSteps(TerrainStrategy terrainStrategy)
         {
-            _stepEnumerator = GetSteps().GetEnumerator();
-            _stepEnumerator.MoveNext();
-            _current = _stepEnumerator.Current;
             _terrainStrategy = terrainStrategy;
         }
 
-        private IEnumerable<Step> GetSteps()
+        public IEnumerable<Step> GetSteps()
         {
             //for (var x = 0; x < 5; x++) yield return Make.Drone;
             //yield return Make.Overlord;
@@ -51,13 +48,13 @@
             yield return Make.Drone;
             yield return Make.Drone;
             yield return Make.Drone;
-            yield return Make.MuscularAugments;
+            yield return Make.HydraSpeed;
             yield return Make.Overlord;
             for (var x = 0; x < 8; x++) yield return Make.Hydralisk;
             yield return Make.CreepColony;
             yield return Make.Overlord;
             yield return Make.SunkenColony;
-            yield return Make.GroovedSpines;
+            yield return Make.HydraRange;
             yield return Make.CreepColony;
             yield return Make.EvolutionChamber;
             for (var x = 0; x < 2; x++) yield return Make.Hydralisk;
@@ -95,23 +92,5 @@
             Game.Self.Units.Where(u => u.UnitType.Type == wantedType).Where(IsInBase);
 
         private static bool IsInBase(Unit u) => u.TilePosition.CalcApproximateDistance(Game.Self.StartLocation) < 15;
-
-
-        private readonly IEnumerator<Step> _stepEnumerator;
-
-        private Step _current;
-        public (Step current, Step next) Get
-        {
-            get
-            {
-                while (_stepEnumerator.Current.IsCompleted) _stepEnumerator.MoveNext();
-                if (_current.IsCompleted)
-                {
-                    _current = _stepEnumerator.Current;
-                    _stepEnumerator.MoveNext();
-                }
-                return (_current, _stepEnumerator.Current);
-            }
-        }
     }
 }

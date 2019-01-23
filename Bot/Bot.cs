@@ -77,7 +77,7 @@
                 _behaviors = _behaviors.Concat(new IBehavior[]
                 {
                     new IdleFightersGuardEntrance(main, entranceToGuard),
-                    new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, main),
+                    //new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, main),
                     new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, main),
 
                 }).ToArray();
@@ -88,12 +88,12 @@
             _behaviors = _behaviors.Concat(new IBehavior[]
             {
                 new IdleWorkersToMineral(natural),
+                new ThreeWorkersOnGas(natural),
                 new WorkersAttackClosestEnemy(natural),
                 new AttackEnemiesInBase(natural),
-                new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, natural),
                 new IdleFightersGuardEntrance(natural, entranceToGuard),
                 new FightersRallyPoint(main, natural),
-                new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, natural),
+                //new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, natural),
                 new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, natural),
                 new IdleFightersAttackClosestEnemy(natural, _terrainStrategy),
                 new BalanceWorkersMainNatural(main, natural),
