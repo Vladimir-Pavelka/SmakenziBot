@@ -13,7 +13,7 @@
         {
             if (Game.FrameCount % 5 != 0) return;
             var ownGroundRangedUnits = Game.Self.Units
-                .Where(u => u.UnitType.Type == UnitType.Zerg_Hydralisk);
+                .Where(u => u.UnitType.Type == UnitType.Zerg_Hydralisk).Where(u => !MyUnits.TrackedUnits.ContainsKey(u) || MyUnits.TrackedUnits[u] != nameof(RetreatIfOutnumbered));
 
             foreach (var attacker in ownGroundRangedUnits)
             {
@@ -21,12 +21,14 @@
                 if (!candidateTargets.Any()) continue;
                 var target = GetHighestPrioTarget(attacker, candidateTargets);
 
-                if (ShouldKite(attacker, target)) Kite(attacker, target);
-                else
+                if (ShouldKite(attacker, target))
                 {
-                    MyUnits.SetActivity(attacker, nameof(RangedKite));
-                    attacker.Attack(target, false);
+                    Kite(attacker, target);
+                    return;
                 }
+
+                MyUnits.SetActivity(attacker, nameof(RangedKite));
+                attacker.Attack(target, false);
             }
         }
 

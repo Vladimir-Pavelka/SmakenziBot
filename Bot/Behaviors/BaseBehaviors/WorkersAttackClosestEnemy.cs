@@ -14,7 +14,7 @@
 
         public override void Execute()
         {
-            BaseWorkers.Where(u => u.IsUnderAttack).ForEach(worker =>
+            OwnWorkers.Where(u => u.IsUnderAttack).ForEach(worker =>
             {
                 var closeUnits = worker.UnitsInRadius(64);
                 var closeEnemyUnits = closeUnits.Where(Game.Enemy.Units.Contains).ToList();

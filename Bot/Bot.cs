@@ -31,34 +31,37 @@
         public IConnectableObservable<UnitType> ConstructionStarted { get; }
 
         private readonly AnalyzedMap _analyzedMap;
-        private readonly TerrainStrategy _terrainStrategy;
+        private readonly AnalyzedMapExtra _analyzedMapExtra;
         private readonly BuildOrderScheduler _buildOrderScheduler;
 
         private readonly IReadOnlyCollection<IBehavior> _behaviors;
         private int _frameSkip = 2;
         private int _localSpeed;
+        private readonly GameInfo _gameInfo;
 
         public Bot()
         {
             //MapExporter.ExportMap();
             _analyzedMap = TerrainAnalyzerAdapter.Get();
-            _terrainStrategy = new TerrainStrategy(_analyzedMap);
+            _analyzedMapExtra = new AnalyzedMapExtra(_analyzedMap);
+            _gameInfo = new GameInfo(_analyzedMap);
 
             UnitSpawned = _unitSpawned.Publish();
             UnitDestroyed = _unitDestroyed.Publish();
             TrainingStarted = _trainingStarted.Publish();
             ConstructionStarted = _constructionStarted.Publish();
 
-            _buildOrderScheduler = new BuildOrderScheduler(TrainingStarted, ConstructionStarted, _terrainStrategy);
+            _buildOrderScheduler = new BuildOrderScheduler(TrainingStarted, ConstructionStarted, _analyzedMapExtra);
 
-            var entranceToNaturalExp = _terrainStrategy.MyNaturals.FirstOrDefault()?.AdjacentChokes
-                .Except(_terrainStrategy.ChokesBetweenMainAndNaturals).FirstOrDefault();
+            var entranceToNaturalExp = _analyzedMapExtra.MyNaturals.FirstOrDefault()?.AdjacentChokes
+                .Except(_analyzedMapExtra.ChokesBetweenMainAndNaturals).FirstOrDefault();
             var hasEntranceToNaturalExp = entranceToNaturalExp != null;
             var entranceToGuard = hasEntranceToNaturalExp
                 ? entranceToNaturalExp
-                : _terrainStrategy.ChokesBetweenMainAndNaturals.FirstOrDefault();
+                : _analyzedMapExtra.ChokesBetweenMainAndNaturals.FirstOrDefault();
 
-            var main = _terrainStrategy.MyStartRegion;
+            var main = _analyzedMapExtra.MyStartRegion;
+
             _behaviors = new IBehavior[]
             {
                 new IdleWorkersToMineral(main),
@@ -70,21 +73,22 @@
                 new RangedKite(),
                 new RememberEnemyBuildings(),
                 new TowersAttackLowestHp(),
+                new RetreatIfOutnumbered(_gameInfo),
             };
 
-            if (!_terrainStrategy.MyNaturals.Any())
+            if (!_analyzedMapExtra.MyNaturals.Any())
             {
                 _behaviors = _behaviors.Concat(new IBehavior[]
                 {
                     new IdleFightersGuardEntrance(main, entranceToGuard),
-                    //new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, main),
+                    new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, main),
                     new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, main),
 
                 }).ToArray();
                 return;
             }
 
-            var natural = _terrainStrategy.MyNaturals.First();
+            var natural = _analyzedMapExtra.MyNaturals.First();
             _behaviors = _behaviors.Concat(new IBehavior[]
             {
                 new IdleWorkersToMineral(natural),
@@ -93,9 +97,9 @@
                 new AttackEnemiesInBase(natural),
                 new IdleFightersGuardEntrance(natural, entranceToGuard),
                 new FightersRallyPoint(main, natural),
-                //new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, natural),
+                new OrderIdleUnitsToAttack(UnitType.Zerg_Zergling, 6, natural),
                 new OrderIdleUnitsToAttack(UnitType.Zerg_Hydralisk, 20, natural),
-                new IdleFightersAttackClosestEnemy(natural, _terrainStrategy),
+                new IdleFightersAttackClosestEnemy(natural, _analyzedMapExtra),
                 new BalanceWorkersMainNatural(main, natural),
             }).ToArray();
         }
@@ -110,6 +114,8 @@
             UnitSpawned.Connect();
             TrainingStarted.Connect();
             ConstructionStarted.Connect();
+
+            _gameInfo.RegisterMyBase(new MyBase(_analyzedMapExtra.MyStartRegion, BaseType.Main));
         }
 
         public void OnFrame()
@@ -123,7 +129,7 @@
 
         private void DrawDebugInfo()
         {
-            _terrainStrategy.MyNaturals.ForEach(Draw.Natural);
+            _analyzedMapExtra.MyNaturals.ForEach(Draw.Natural);
             //Draw.Regions(_analyzedMap.MapRegions);
             //Draw.Chokes(_analyzedMap.ChokeRegions.SelectMany(ch => ch.MinWidthWalkTilesLine));
             _analyzedMap.ChokeRegions.Select(ch => ch.MinWidthWalkTilesLine).ForEach(Draw.ChokeLine);

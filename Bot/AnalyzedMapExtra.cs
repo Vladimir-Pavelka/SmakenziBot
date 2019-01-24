@@ -7,11 +7,11 @@
     using NBWTA.Utils;
     using Utils;
 
-    public class TerrainStrategy
+    public class AnalyzedMapExtra
     {
         private readonly AnalyzedMap _analyzedMap;
 
-        public TerrainStrategy(AnalyzedMap analyzedMap)
+        public AnalyzedMapExtra(AnalyzedMap analyzedMap)
         {
             _analyzedMap = analyzedMap;
 

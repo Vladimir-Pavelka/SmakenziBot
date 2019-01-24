@@ -23,7 +23,7 @@
         {
             if (Game.FrameCount % 20 != 0) return;
             var idleUnitsOfWantedTypeInMyBase =
-                BaseCombatUnits.Where(x => x.UnitType.Type == _unitType).Where(x => x.IsIdle).ToList();
+                OwnFighters.Where(x => x.UnitType.Type == _unitType).Where(x => x.IsIdle).ToList();
             if (idleUnitsOfWantedTypeInMyBase.Count < _minCount) return;
             if (GameMemory.EnemyBuildings.Any())
             {

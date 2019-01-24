@@ -31,7 +31,7 @@
         {
             if (_entrance == null) return;
 
-            var unitsToMove = BaseCombatUnits.Where(u => u.IsIdle).Where(u => !IsNearEntrance(u));
+            var unitsToMove = OwnFighters.Where(u => u.IsIdle).Where(u => !IsNearEntrance(u));
             unitsToMove.ForEach(u =>
             {
                 MyUnits.SetActivity(u, nameof(IdleFightersGuardEntrance));

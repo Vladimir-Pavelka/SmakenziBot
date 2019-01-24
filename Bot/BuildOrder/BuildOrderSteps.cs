@@ -10,11 +10,11 @@
 
     public class BuildOrderSteps : IBuildOrder
     {
-        private readonly TerrainStrategy _terrainStrategy;
+        private readonly AnalyzedMapExtra _analyzedMapExtra;
 
-        public BuildOrderSteps(TerrainStrategy terrainStrategy)
+        public BuildOrderSteps(AnalyzedMapExtra analyzedMapExtra)
         {
-            _terrainStrategy = terrainStrategy;
+            _analyzedMapExtra = analyzedMapExtra;
         }
 
         public IEnumerable<Step> GetSteps()
@@ -36,8 +36,8 @@
             foreach (var step in Openings.NinePool()) yield return step;
             for (var x = 0; x < 3; x++) yield return Make.Zergling;
             yield return Make.Drone;
-            yield return _terrainStrategy.MyNaturals.Any()
-                ? Make.Hatchery(HatcheryType.NaturalExp)//_terrainStrategy.MyNaturals.First().ResourceSites.First().OptimalResourceDepotBuildTile.AsBuildTile())
+            yield return _analyzedMapExtra.MyNaturals.Any()
+                ? Make.Hatchery(HatcheryType.NaturalExp)//_analyzedMapExtra.MyNaturals.First().ResourceSites.First().OptimalResourceDepotBuildTile.AsBuildTile())
                 : Make.Hatchery(HatcheryType.MainMacro);
             yield return Make.Drone;
             yield return Make.Extractor;

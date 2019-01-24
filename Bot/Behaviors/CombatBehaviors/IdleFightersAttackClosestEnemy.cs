@@ -11,15 +11,13 @@
     public class IdleFightersAttackClosestEnemy : CombatBehavior
     {
         private readonly MapRegion _baseLocation;
-        private readonly TerrainStrategy _terrainStrategy;
         private readonly IReadOnlyList<Position> _allResourceSites;
         private readonly Random _rnd = new Random();
 
-        public IdleFightersAttackClosestEnemy(MapRegion baseLocation, TerrainStrategy terrainStrategy)
+        public IdleFightersAttackClosestEnemy(MapRegion baseLocation, AnalyzedMapExtra analyzedMapExtra)
         {
             _baseLocation = baseLocation;
-            _terrainStrategy = terrainStrategy;
-            _allResourceSites = terrainStrategy.AllResourceSites
+            _allResourceSites = analyzedMapExtra.AllResourceSites
                 .Select(rs => rs.OptimalResourceDepotBuildTile.AsBuildTile().ToPixelTile()).ToList();
         }
 

@@ -17,7 +17,7 @@
 
         public override void Execute()
         {
-            BaseCombatUnits.Where(u => u.IsIdle).ForEach(u =>
+            OwnFighters.Where(u => u.IsIdle).ForEach(u =>
             {
                 u.Move(_rellyFightersTo, false);
                 MyUnits.SetActivity(u, nameof(FightersRallyPoint));

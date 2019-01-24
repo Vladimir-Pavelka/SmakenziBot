@@ -24,28 +24,28 @@
         }
 
         private bool AreEnemiesInMineralLine() =>
-           EnemiesNearMineralLine.Any() && WorkersNearMineralLine.Any();
+           EnemiesNearWorkers.Any() && MineralWorkers.Any();
 
         private bool AreWorkersStacked()
         {
-            var averagePosition = WorkersNearMineralLine.ToList().AveragePosition();
-            return WorkersNearMineralLine.All(w => w.TilePosition.CalcApproximateDistance(averagePosition) <= 1);
+            var averagePosition = MineralWorkers.ToList().AveragePosition();
+            return MineralWorkers.All(w => w.TilePosition.CalcApproximateDistance(averagePosition) <= 1);
         }
 
-        private bool AreWorkersAttacking() => WorkersNearMineralLine.Any(w => w.IsAttacking);
+        private bool AreWorkersAttacking() => MineralWorkers.Any(w => w.IsAttacking);
 
         private void OrderToStackOnMineral()
         {
-            var averagePosition = WorkersNearMineralLine.ToList().AveragePosition();
+            var averagePosition = MineralWorkers.ToList().AveragePosition();
             var closestMineral = BaseMinerals.ClosestTo(averagePosition);
-            WorkersNearMineralLine.ForEach(w => w.Gather(closestMineral, false));
+            MineralWorkers.ForEach(w => w.Gather(closestMineral, false));
         }
 
         private void AttackClosestEnemy()
         {
-            var averagePosition = WorkersNearMineralLine.ToList().AveragePosition();
-            var closestEnemy = EnemiesNearMineralLine.ClosestTo(averagePosition);
-            WorkersNearMineralLine.ForEach(w => w.Attack(closestEnemy, false));
+            var averagePosition = MineralWorkers.ToList().AveragePosition();
+            var closestEnemy = EnemiesNearWorkers.ClosestTo(averagePosition);
+            MineralWorkers.ForEach(w => w.Attack(closestEnemy, false));
         }
     }
 }

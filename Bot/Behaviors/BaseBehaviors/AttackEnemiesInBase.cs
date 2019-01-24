@@ -13,7 +13,7 @@
         public override void Execute()
         {
             if (!EnemiesInBase.Any()) return;
-            BaseCombatUnits.Where(u => u.IsIdle)
+            OwnFighters.Where(u => u.IsIdle)
                 .ForEach(u =>
                 {
                     MyUnits.SetActivity(u, nameof(AttackEnemiesInBase));

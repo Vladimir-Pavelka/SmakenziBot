@@ -22,12 +22,12 @@
         private const int ParallelExecutionsCount = 3;
         private const int QueueCount = 5;
 
-        public BuildOrderScheduler(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, TerrainStrategy terrainStrategy)
+        public BuildOrderScheduler(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra)
         {
-            //var buildOrder = new BuildOrderSteps(terrainStrategy);
-            var buildOrder = new BuildOrderZvT();
+            var buildOrder = new BuildOrderSteps(analyzedMapExtra);
+            //var buildOrder = new BuildOrderZvT();
             _buildOrderSteps = new BuildOrderStepsAdapter(buildOrder);
-            _stepExecutor = new StepExecutor(trainingStarted, constructionStarted, terrainStrategy);
+            _stepExecutor = new StepExecutor(trainingStarted, constructionStarted, analyzedMapExtra);
         }
 
         public void OnFrame()

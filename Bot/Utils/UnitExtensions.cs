@@ -33,8 +33,11 @@
 
         public static IEnumerable<Weapon> Weapons(this Unit u)
         {
-            if (u.UnitType.GroundWeapon.Type != WeaponType.None) yield return u.UnitType.GroundWeapon;
-            if (u.UnitType.AirWeapon.Type != WeaponType.None) yield return u.UnitType.AirWeapon;
+            if (u.CanAttackGround()) yield return u.UnitType.GroundWeapon;
+            if (u.CanAttackAir()) yield return u.UnitType.AirWeapon;
         }
+
+        public static bool CanAttackGround(this Unit u) => u.UnitType.GroundWeapon.Type != WeaponType.None;
+        public static bool CanAttackAir(this Unit u) => u.UnitType.AirWeapon.Type != WeaponType.None;
     }
 }

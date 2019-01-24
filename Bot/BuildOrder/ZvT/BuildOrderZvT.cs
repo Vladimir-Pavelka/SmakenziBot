@@ -24,36 +24,39 @@
                     Make.Zergling // scout
                 })
                 //.Concat(While(() => UsedSupply < 15, () => Make.Drone))
-                .Concat(new Step[] { Make.Drone, Make.Drone, Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 4))
                 .Concat(Make.Overlord.Yield())
-                .Concat(new Step[] { Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 2))
                 //.Concat(While(() => Game.Self.Gas < 100, () => Make.Drone))
                 .Concat(Make.Lair.Yield())
-                .Concat(new Step[] { Make.Drone, Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 3))
                 //.Concat(While(() => Game.Self.Gas < 100 || CompletionPercentage(UnitType.Zerg_Lair) < 10, () => Make.Drone))
                 .Concat(Make.ZerglingSpeed.Yield())
                 .Concat(Make.Extractor.Yield())
-                .Concat(new Step[] { Make.Drone, Make.Drone, Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 4))
                 .Concat(Make.Overlord.Yield())
-                .Concat(new Step[] { Make.Drone, Make.Drone, Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 4))
                 .Concat(Make.Spire.Yield())
-                .Concat(Enumerable.Range(0, 6).Select(_ => Make.Zergling))
-                .Concat(new Step[] { Make.Overlord, Make.Overlord, Make.Overlord })
-                .Concat(Enumerable.Range(0, 9).Select(_ => Make.Mutalisk))
+                .Concat(Repeat(() => Make.Zergling, 6))
+                .Concat(Repeat(() => Make.Overlord, 3))
+                .Concat(Repeat(() => Make.Mutalisk, 9))
                 .Concat(Do.SendDroneToThird.Yield())
                 .Concat(Make.HydraliskDen.Yield())
                 .Concat(Make.QueensNest.Yield())
-                .Concat(new Step[] { Make.Drone, Make.Drone, Make.Drone, Make.Drone })
+                .Concat(Repeat(() => Make.Drone, 4))
                 .Concat(Make.Hatchery(HatcheryType.ThirdExp).Yield())
                 .Concat(Make.LurkerAspect.Yield())
                 .Concat(Make.Hive.Yield())
                 .Concat(Make.DefilerMound.Yield())
                 .Concat(Make.UltraliskCavern.Yield())
                 .Concat(Make.NydusCanal.Yield())
+                .Concat(Make.NydusExit.Yield())
                 .Concat(While(() => true, () => Make.Zergling));
 
             //.Concat(While(() => !HaveBuilding(UnitType.Zerg_Lair) && CompletionPercentage(UnitType.Zerg_Lair) < 90, () => Make.Drone));
         }
+
+        public IEnumerable<Step> Repeat(Func<Step> step, int count) => Enumerable.Range(0, count).Select(_ => step());
 
         public IEnumerable<Step> While(Func<bool> predicate, Func<Step> step)
         {

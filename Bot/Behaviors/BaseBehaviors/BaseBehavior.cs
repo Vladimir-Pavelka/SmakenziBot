@@ -1,5 +1,6 @@
 ﻿namespace SmakenziBot.Behaviors.BaseBehaviors
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using BroodWar.Api;
@@ -18,34 +19,29 @@
 
         public abstract void Execute();
 
-        protected IReadOnlyCollection<Unit> EnemiesNearMineralLine => Game.Enemy.Units.Where(IsNearMineralLine).ToList();
+        protected IEnumerable<Unit> EnemiesNearWorkers => Game.Enemy.Units.Where(IsNearWorkers);
+        protected bool IsNearWorkers(Unit u) => OwnWorkers.Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Any(w => w.TilePosition.CalcApproximateDistance(u.TilePosition) < 1);
 
-        protected IEnumerable<Unit> EnemiesInBase => Game.Enemy.Units.Where(IsInBase);
-        protected IEnumerable<Unit> WorkersNearMineralLine => BaseWorkers.Where(IsNearMineralLine);
+        public IEnumerable<Unit> OwnBelongings => Game.Self.Units.Where(IsInBase);
+        public IEnumerable<Unit> OwnUnits => OwnBelongings.Where(x => !x.UnitType.IsBuilding);
+        public IEnumerable<Unit> OwnWorkers => OwnUnits.Where(u => u.UnitType.IsWorker);
+        public IEnumerable<Unit> OwnFighters => OwnUnits.Where(x => x.IsFighter());
+        public IEnumerable<Unit> OwnBuildings => OwnBelongings.Where(x => x.UnitType.IsBuilding);
+        public IEnumerable<Unit> OwnStaticDefense => OwnBuildings.Where(x => x.UnitType.CanAttack);
+
+        public IEnumerable<Unit> MineralWorkers => OwnWorkers.Where(w => w.IsGatheringMinerals);
+        public IEnumerable<Unit> GasWorkers => OwnWorkers.Where(w => w.IsGatheringGas);
+
+        public IEnumerable<Unit> BaseMinerals => Game.Minerals.Where(IsInBase);
+        public IEnumerable<Unit> BaseGeysers => Game.Geysers.Where(IsInBase);
+        public IEnumerable<Unit> OwnRefineries => OwnBuildings.Where(b => b.UnitType.IsRefinery);
+
+        public IEnumerable<Unit> EnemiesInBase => Game.Enemy.Units.Where(IsInBase);
+
         protected bool IsInBase(Unit u) => BasePosition.ContentTiles.Contains(u.Position.ToWalkTile().AsTuple());
-        protected bool IsNearMineralLine(Unit u) => BaseWorkers.Where(w => w.IsGatheringMinerals || w.IsGatheringGas).Any(w => w.TilePosition.CalcApproximateDistance(u.TilePosition) < 1);
 
-        private (IEnumerable<Unit> baseWorkers, int frameCount) _baseWorkers = (null, -1);
-        protected IEnumerable<Unit> BaseWorkers
-        {
-            get
-            {
-                if (Game.FrameCount != _baseWorkers.frameCount)
-                {
-                    var baseWorkers = Game.Self.Units.Where(u => u.UnitType.IsWorker).Where(IsInBase).ToList();
-                    _baseWorkers = (baseWorkers, Game.FrameCount);
-                }
+        protected bool HasCompletedBuilding(UnitType buildingType) => OwnBuildings.Any(x => x.Is(buildingType) && x.IsCompleted);
 
-                return _baseWorkers.baseWorkers;
-            }
-        }
-
-        protected IEnumerable<Unit> BaseMinerals => Game.Minerals.Where(IsInBase);
-
-        protected bool HasBuilding(UnitType buildingType) => BaseBuildings.Any(x => x.UnitType.Type == buildingType);
-        protected IEnumerable<Unit> BaseBuildings => Game.Self.Units.Where(x => x.UnitType.IsBuilding).Where(x => x.IsCompleted).Where(IsInBase);
-
-        protected IEnumerable<Unit> BaseCombatUnits => Game.Self.Units.Where(x => x.IsFighter()).Where(IsInBase).Where(u => !u.UnitType.IsBuilding);
 
         protected void GatherClosestMineral(Unit worker)
         {
@@ -58,14 +54,35 @@
 
         protected void GatherClosestGas(Unit worker)
         {
-            var closestGasExtractor = BaseBuildings.Where(b => b.UnitType.Type == UnitType.Zerg_Extractor).OrderBy(worker.Distance).First();
+            var closestGasExtractor = OwnRefineries.OrderBy(worker.Distance).First();
             worker.Gather(closestGasExtractor, false);
         }
 
-        protected Unit GetWorker()
+        protected Unit GetFreeWorker()
         {
-            var freeWorkers = BaseWorkers.Where(x => !x.IsCarryingMinerals).Where(x => !x.IsGatheringGas);
-            return freeWorkers.FirstOrDefault() ?? BaseWorkers.FirstOrDefault(x => !x.IsGatheringGas) ?? BaseWorkers.First();
+            var freeWorkers = MineralWorkers.Where(x => !x.IsCarryingMinerals).Where(x => !x.IsGatheringGas);
+            return freeWorkers.FirstOrDefault() ?? OwnWorkers.FirstOrDefault(x => !x.IsGatheringGas) ?? OwnWorkers.First();
+        }
+    }
+
+    public class Cache<T>
+    {
+        private T _value;
+        private readonly Func<T> _calculateValue;
+        private int _valueFrame = -1;
+
+        public Cache(Func<T> calculateValue)
+        {
+            _calculateValue = calculateValue;
+        }
+
+        private T Value
+        {
+            get
+            {
+                if (Game.FrameCount > _valueFrame) _value = _calculateValue();
+                return _value;
+            }
         }
     }
 }

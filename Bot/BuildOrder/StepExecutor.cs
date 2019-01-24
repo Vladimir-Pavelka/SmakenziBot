@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Reactive.Linq;
     using BroodWar.Api;
-    using BroodWar.Api.Enum;
     using Steps;
     using Utils;
     using UnitType = BroodWar.Api.Enum.UnitType;
@@ -15,13 +14,13 @@
 
         private readonly IObservable<UnitType> _trainingStarted;
         private readonly IObservable<UnitType> _constructionStarted;
-        private readonly TerrainStrategy _terrainStrategy;
+        private readonly AnalyzedMapExtra _analyzedMapExtra;
 
-        public StepExecutor(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, TerrainStrategy terrainStrategy)
+        public StepExecutor(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra)
         {
             _trainingStarted = trainingStarted;
             _constructionStarted = constructionStarted;
-            _terrainStrategy = terrainStrategy;
+            _analyzedMapExtra = analyzedMapExtra;
         }
 
         public void Execute(Step step)
@@ -34,7 +33,9 @@
                     return;
                 case ConstructBuildingStep constructStep:
                     {
-                        var builder = GetFreeDrone();
+                        var builder = constructStep.Target == UnitType.Zerg_Hatchery
+                            ? MyUnits.TrackedUnits.FirstOrDefault(kvp => kvp.Value.StartsWith("MoveDroneTo")).Key ?? GetFreeDrone()
+                            : GetFreeDrone();
                         var buildSite = FindBuildSite(builder, constructStep);
                         if (!Game.IsExplored(buildSite))
                         {
@@ -74,6 +75,14 @@
                             .First(x => !x.IsBeingConstructed && !x.IsResearching);
 
                         var isSuccess = buildingToUpgrade.Morph(upgradeBuildingStep.Target);
+                        if (isSuccess) CompleteStep(step);
+                        return;
+                    }
+                case ConstructNydusExitStep _:
+                    {
+                        var nydusEntrance = Game.Self.Units.First(x => x.Is(UnitType.Zerg_Nydus_Canal));
+                        var nydusExitLocation = Game.GetBuildLocation(UnitTypes.All[UnitType.Zerg_Nydus_Canal], Game.Self.StartLocation, 60, true);
+                        var isSuccess = nydusEntrance.Build(UnitType.Zerg_Nydus_Canal, nydusExitLocation);
                         if (isSuccess) CompleteStep(step);
                         return;
                     }
@@ -131,25 +140,29 @@
             return freeDrones.Any() ? freeDrones.First() : myDrones.First();
         }
 
-        private TilePosition NaturalBuildLocation => _terrainStrategy.MyNaturals.First().ResourceSites.First()
+        private TilePosition NaturalBuildLocation => _analyzedMapExtra.MyNaturals.First().ResourceSites.First()
             .OptimalResourceDepotBuildTile.AsBuildTile();
 
-        private TilePosition ThirdBuildLocation => _terrainStrategy.AllResourceSites
-            .Except(_terrainStrategy.MyNaturals.SelectMany(n => n.ResourceSites)
-                .Concat(_terrainStrategy.MyStartRegion.ResourceSites))
+        private TilePosition ThirdBuildLocation => _analyzedMapExtra.AllResourceSites
+            .Except(_analyzedMapExtra.MyNaturals.SelectMany(n => n.ResourceSites)
+                .Concat(_analyzedMapExtra.MyStartRegion.ResourceSites))
             .Where(rs => rs.GeysersBuildTiles.Any())
             .MinBy(rs => Game.Self.StartLocation.CalcApproximateDistance(rs.OptimalResourceDepotBuildTile.AsBuildTile()))
             .OptimalResourceDepotBuildTile.AsBuildTile();
 
         private static void MorphLarvaInto(UnitType unitType)
         {
-            var larva = Game.Self.Units.First(x => x.UnitType.Type == UnitType.Zerg_Larva);
-            larva.Morph(unitType);
+            var hatcheryWithMostLarvas = Game.Self.Units.Where(u => u.Is(UnitType.Zerg_Larva)).GroupBy(l => l.Hatchery)
+                .Where(g => g.Key.Exists).MaxBy(g => g.Key.Larva.Count).Key;
+
+            var larva = hatcheryWithMostLarvas.Larva.FirstOrDefault();
+
+            larva?.Morph(unitType);
         }
 
         private TilePosition CreepColonyNearChoke()
         {
-            var naturalChoke = _terrainStrategy.MyNaturals.First().AdjacentChokes.Except(_terrainStrategy.ChokesBetweenMainAndNaturals).First();
+            var naturalChoke = _analyzedMapExtra.MyNaturals.First().AdjacentChokes.Except(_analyzedMapExtra.ChokesBetweenMainAndNaturals).First();
             var chokePosition = naturalChoke.ContentTiles.First().AsWalkTile().ToBuildTile();
             var buildLocation = Enumerable.Range(-20, 40).Select(x => chokePosition.X + x + (x > 0 ? 2 : 0))
                 .SelectMany(x => Enumerable.Range(-20, 40).Select(y => chokePosition.Y + y + (y > 0 ? 2 : 0)).Select(y => new TilePosition(x, y)))

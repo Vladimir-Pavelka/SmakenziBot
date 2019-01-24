@@ -23,6 +23,7 @@
         public static ConstructBuildingStep DefilerMound => new ConstructBuildingStep(UnitType.Zerg_Defiler_Mound);
         public static ConstructBuildingStep UltraliskCavern => new ConstructBuildingStep(UnitType.Zerg_Ultralisk_Cavern);
         public static ConstructBuildingStep NydusCanal => new ConstructBuildingStep(UnitType.Zerg_Nydus_Canal);
+        public static ConstructNydusExitStep NydusExit => new ConstructNydusExitStep();
 
         public static MorphUpgradeBuildingStep Lair => new MorphUpgradeBuildingStep(UnitType.Zerg_Lair);
         public static MorphUpgradeBuildingStep Hive => new MorphUpgradeBuildingStep(UnitType.Zerg_Hive);

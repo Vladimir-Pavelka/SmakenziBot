@@ -11,7 +11,7 @@
         {
         }
 
-        public override void Execute() => BaseWorkers.Where(w => w.IsIdle)
+        public override void Execute() => OwnWorkers.Where(w => w.IsIdle)
             .Where(w => !MyUnits.TrackedUnits.ContainsKey(w) || !MyUnits.TrackedUnits[w].StartsWith("MoveDroneTo"))
             .ForEach(w =>
             {

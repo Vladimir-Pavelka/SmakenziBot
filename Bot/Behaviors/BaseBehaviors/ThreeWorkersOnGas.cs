@@ -14,10 +14,10 @@
         {
             if (!HasBuilding(UnitType.Zerg_Extractor)) return;
 
-            var workersGatheringGas = BaseWorkers.Where(w => w.IsGatheringGas).ToList();
-            var workersGatheringMinerals = BaseWorkers.Where(w => w.IsGatheringMinerals).ToList();
+            var workersGatheringGas = OwnWorkers.Where(w => w.IsGatheringGas).ToList();
+            var workersGatheringMinerals = OwnWorkers.Where(w => w.IsGatheringMinerals).ToList();
             var hasNotEnough = workersGatheringGas.Count < 3;
-            if (hasNotEnough && workersGatheringMinerals.Count > 6 && BaseWorkers.Any())
+            if (hasNotEnough && workersGatheringMinerals.Count > 6 && OwnWorkers.Any())
             {
                 GatherClosestGas(GetWorker());
                 return;
