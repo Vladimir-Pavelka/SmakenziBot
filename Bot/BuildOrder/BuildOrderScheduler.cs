@@ -7,7 +7,6 @@
     using NBWTA.Utils;
     using Prerequisities;
     using Steps;
-    using ZvT;
     using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class BuildOrderScheduler
@@ -22,12 +21,12 @@
         private const int ParallelExecutionsCount = 3;
         private const int QueueCount = 5;
 
-        public BuildOrderScheduler(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra)
+        public BuildOrderScheduler(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra, GameInfo gameInfo)
         {
             var buildOrder = new BuildOrderSteps(analyzedMapExtra);
             //var buildOrder = new BuildOrderZvT();
             _buildOrderSteps = new BuildOrderStepsAdapter(buildOrder);
-            _stepExecutor = new StepExecutor(trainingStarted, constructionStarted, analyzedMapExtra);
+            _stepExecutor = new StepExecutor(trainingStarted, constructionStarted, analyzedMapExtra, gameInfo);
         }
 
         public void OnFrame()

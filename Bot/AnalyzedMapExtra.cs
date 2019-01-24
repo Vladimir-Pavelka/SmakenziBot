@@ -27,12 +27,16 @@
             ChokesBetweenMainAndNaturals = MyStartRegion.AdjacentChokes
                 .Intersect(MyNaturals.SelectMany(n => n.AdjacentChokes)).ToList();
 
-            AllResourceSites = _analyzedMap.MapRegions.SelectMany(mr => mr.ResourceSites).ToList();
+            NaturalsEntrances = MyNaturals.SelectMany(n => n.AdjacentChokes)
+                .Except(ChokesBetweenMainAndNaturals).ToList();
+
+            AllResourceRegions = _analyzedMap.MapRegions.Where(mr => mr.ResourceSites.Any()).ToList();
         }
 
         public MapRegion MyStartRegion { get; }
         public IReadOnlyCollection<MapRegion> MyNaturals { get; }
         public IReadOnlyCollection<ChokeRegion> ChokesBetweenMainAndNaturals { get; }
-        public IReadOnlyCollection<ResourceSite> AllResourceSites { get; }
+        public IReadOnlyCollection<ChokeRegion> NaturalsEntrances { get; }
+        public IReadOnlyCollection<MapRegion> AllResourceRegions { get; }
     }
 }

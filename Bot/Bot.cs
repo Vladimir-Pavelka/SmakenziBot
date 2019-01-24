@@ -51,7 +51,7 @@
             TrainingStarted = _trainingStarted.Publish();
             ConstructionStarted = _constructionStarted.Publish();
 
-            _buildOrderScheduler = new BuildOrderScheduler(TrainingStarted, ConstructionStarted, _analyzedMapExtra);
+            _buildOrderScheduler = new BuildOrderScheduler(TrainingStarted, ConstructionStarted, _analyzedMapExtra, _gameInfo);
 
             var entranceToNaturalExp = _analyzedMapExtra.MyNaturals.FirstOrDefault()?.AdjacentChokes
                 .Except(_analyzedMapExtra.ChokesBetweenMainAndNaturals).FirstOrDefault();
@@ -115,7 +115,7 @@
             TrainingStarted.Connect();
             ConstructionStarted.Connect();
 
-            _gameInfo.RegisterMyBase(new MyBase(_analyzedMapExtra.MyStartRegion, BaseType.Main));
+            _gameInfo.MyBases.Add(new MyBase(_analyzedMapExtra.MyStartRegion, BaseType.Main));
         }
 
         public void OnFrame()

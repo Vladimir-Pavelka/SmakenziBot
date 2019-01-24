@@ -1,5 +1,6 @@
 ﻿namespace SmakenziBot.BuildOrder.Steps
 {
+    using System;
     using BroodWar.Api.Enum;
 
     public class HatcheryBuildingStep : ConstructBuildingStep
@@ -12,10 +13,12 @@
         }
     }
 
+    [Flags]
     public enum HatcheryType
     {
-        MainMacro,
-        NaturalExp,
-        ThirdExp,
+        MainMacro = 1,
+        NaturalExp = 2,
+        ThirdExp = 4,
+        Expansion = NaturalExp | ThirdExp
     }
 }

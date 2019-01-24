@@ -23,7 +23,7 @@
         }
 
         private bool IsOutsideOfBase(Unit u) =>
-            !_gameInfo.MyBases.Any(b => b.ContentTiles.Contains(u.TilePosition.ToWalkTile().AsTuple()));
+            !_gameInfo.MyBases.Any(b => b.BaseRegion.ContentTiles.Contains(u.TilePosition.ToWalkTile().AsTuple()));
 
         private static bool IsOutnumbered(Unit u)
         {

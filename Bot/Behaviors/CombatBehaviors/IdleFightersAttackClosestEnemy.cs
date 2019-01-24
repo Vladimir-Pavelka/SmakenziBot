@@ -17,7 +17,7 @@
         public IdleFightersAttackClosestEnemy(MapRegion baseLocation, AnalyzedMapExtra analyzedMapExtra)
         {
             _baseLocation = baseLocation;
-            _allResourceSites = analyzedMapExtra.AllResourceSites
+            _allResourceSites = analyzedMapExtra.AllResourceRegions.SelectMany(r => r.ResourceSites)
                 .Select(rs => rs.OptimalResourceDepotBuildTile.AsBuildTile().ToPixelTile()).ToList();
         }
 

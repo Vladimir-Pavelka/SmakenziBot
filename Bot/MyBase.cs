@@ -11,6 +11,7 @@
     public class MyBase
     {
         public MapRegion BaseRegion { get; }
+        private (int, int) ResourceDepotSite => BaseRegion.ResourceSites.First().OptimalResourceDepotBuildTile;
 
         public MyBase(MapRegion baseRegion, BaseType baseType)
         {
@@ -30,6 +31,7 @@
         public IEnumerable<Unit> OwnFighters => OwnUnits.Where(x => x.IsFighter());
         public IEnumerable<Unit> OwnBuildings => OwnBelongings.Where(x => x.UnitType.IsBuilding);
         public IEnumerable<Unit> OwnStaticDefense => OwnBuildings.Where(x => x.UnitType.CanAttack);
+        public IEnumerable<Unit> OwnHatcheries => OwnBuildings.Where(x => x.UnitType.ProducesLarva);
 
         public IEnumerable<Unit> MineralWorkers => OwnWorkers.Where(w => w.IsGatheringMinerals);
         public IEnumerable<Unit> GasWorkers => OwnWorkers.Where(w => w.IsGatheringGas);
@@ -42,6 +44,14 @@
 
         public bool IsInBase(Unit u) => BaseRegion.ContentTiles.Contains(u.Position.ToWalkTile().AsTuple());
         public bool HasCompletedBuilding(UnitType buildingType) => OwnBuildings.Any(x => x.Is(buildingType) && x.IsCompleted);
+
+        public override int GetHashCode() => ResourceDepotSite.GetHashCode();
+        public override bool Equals(object other)
+        {
+            if (!(other is MyBase otherMyBase)) return false;
+            return ReferenceEquals(this, otherMyBase) || Equals(otherMyBase);
+        }
+        private bool Equals(MyBase other) => ResourceDepotSite.Equals(other.ResourceDepotSite);
     }
 
     public enum BaseType

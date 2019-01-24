@@ -15,12 +15,14 @@
         private readonly IObservable<UnitType> _trainingStarted;
         private readonly IObservable<UnitType> _constructionStarted;
         private readonly AnalyzedMapExtra _analyzedMapExtra;
+        private readonly ExpandExecutor _expandExecutor;
 
-        public StepExecutor(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra)
+        public StepExecutor(IObservable<UnitType> trainingStarted, IObservable<UnitType> constructionStarted, AnalyzedMapExtra analyzedMapExtra, GameInfo gameInfo)
         {
             _trainingStarted = trainingStarted;
             _constructionStarted = constructionStarted;
             _analyzedMapExtra = analyzedMapExtra;
+            _expandExecutor = new ExpandExecutor(analyzedMapExtra, gameInfo, constructionStarted);
         }
 
         public void Execute(Step step)
@@ -31,20 +33,17 @@
                     MorphLarvaInto(morphStep.Target);
                     _trainingStarted.Where(x => x == morphStep.Target).Take(1).Subscribe(x => CompleteStep(step));
                     return;
+                case HatcheryBuildingStep hatcheryStep:
+                    if (hatcheryStep.HatcheryType.HasFlag(HatcheryType.Expansion))
+                    {
+                        _expandExecutor.Execute(hatcheryStep);
+                        return;
+                    }
+                    Construct(hatcheryStep);
+                    return;
                 case ConstructBuildingStep constructStep:
                     {
-                        var builder = constructStep.Target == UnitType.Zerg_Hatchery
-                            ? MyUnits.TrackedUnits.FirstOrDefault(kvp => kvp.Value.StartsWith("MoveDroneTo")).Key ?? GetFreeDrone()
-                            : GetFreeDrone();
-                        var buildSite = FindBuildSite(builder, constructStep);
-                        if (!Game.IsExplored(buildSite))
-                        {
-                            builder.Move(buildSite.ToPixelTile(), false);
-                            return;
-                        }
-
-                        builder.Build(constructStep.Target, buildSite);
-                        _constructionStarted.Where(x => x == constructStep.Target).Take(1).Subscribe(x => CompleteStep(step));
+                        Construct(constructStep);
                         return;
                     }
                 case ResearchUpgradeStep researchStep:
@@ -88,45 +87,40 @@
                     }
                 case BoAction actionStep:
                     {
-                        var drone = GetFreeDrone();
-                        bool isSuccess;
-
-                        switch (actionStep.ActionType)
-                        {
-                            case ActionType.MoveDroneToNatural:
-                                MyUnits.SetActivity(drone, nameof(ActionType.MoveDroneToNatural));
-                                isSuccess = drone.Move(NaturalBuildLocation.ToPixelTile(), false);
-                                if (isSuccess) CompleteStep(step);
-                                return;
-                            case ActionType.MoveDroneToThird:
-                                MyUnits.SetActivity(drone, nameof(ActionType.MoveDroneToThird));
-                                isSuccess = drone.Move(ThirdBuildLocation.ToPixelTile(), false);
-                                if (isSuccess) CompleteStep(step);
-                                return;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                        _expandExecutor.Execute(actionStep);
+                        return;
                     }
             }
         }
 
-        private void CompleteStep(Step step)
+        private void Construct(ConstructBuildingStep constructStep)
         {
-            step.Complete();
+            var builder = GetFreeDrone();
+            var buildSite = FindBuildSite(constructStep);
+            Construct(builder, buildSite, constructStep);
         }
 
-        private TilePosition FindBuildSite(Unit builder, ConstructBuildingStep constructStep)
+        private void Construct(Unit builder, TilePosition buildSite, ConstructBuildingStep constructStep)
+        {
+            if (!Game.IsExplored(buildSite))
+            {
+                builder.Move(buildSite.ToPixelTile(), false);
+                return;
+            }
+
+            builder.Build(constructStep.Target, buildSite);
+            _constructionStarted.Where(x => x == constructStep.Target).Take(1).Subscribe(x => constructStep.Complete());
+        }
+
+        private static void CompleteStep(Step step) => step.Complete();
+
+        private TilePosition FindBuildSite(ConstructBuildingStep constructStep)
         {
             var building = constructStep.Target;
             var basePosition = Game.Self.StartLocation;
             var buildLocation = Game.GetBuildLocation(UnitTypes.All[building], basePosition, 64, false);
 
             if (building == UnitType.Zerg_Creep_Colony) buildLocation = CreepColonyNearChoke();
-            if (constructStep is HatcheryBuildingStep hatcheryStep && hatcheryStep.HatcheryType == HatcheryType.NaturalExp)
-                buildLocation = NaturalBuildLocation;
-
-            if (constructStep is HatcheryBuildingStep hatcheryStepp && hatcheryStepp.HatcheryType == HatcheryType.ThirdExp)
-                buildLocation = ThirdBuildLocation;
 
             if (buildLocation == null) throw new Exception("Could not find suitable build site");
             return buildLocation;
@@ -140,16 +134,6 @@
             return freeDrones.Any() ? freeDrones.First() : myDrones.First();
         }
 
-        private TilePosition NaturalBuildLocation => _analyzedMapExtra.MyNaturals.First().ResourceSites.First()
-            .OptimalResourceDepotBuildTile.AsBuildTile();
-
-        private TilePosition ThirdBuildLocation => _analyzedMapExtra.AllResourceSites
-            .Except(_analyzedMapExtra.MyNaturals.SelectMany(n => n.ResourceSites)
-                .Concat(_analyzedMapExtra.MyStartRegion.ResourceSites))
-            .Where(rs => rs.GeysersBuildTiles.Any())
-            .MinBy(rs => Game.Self.StartLocation.CalcApproximateDistance(rs.OptimalResourceDepotBuildTile.AsBuildTile()))
-            .OptimalResourceDepotBuildTile.AsBuildTile();
-
         private static void MorphLarvaInto(UnitType unitType)
         {
             var hatcheryWithMostLarvas = Game.Self.Units.Where(u => u.Is(UnitType.Zerg_Larva)).GroupBy(l => l.Hatchery)
@@ -162,7 +146,7 @@
 
         private TilePosition CreepColonyNearChoke()
         {
-            var naturalChoke = _analyzedMapExtra.MyNaturals.First().AdjacentChokes.Except(_analyzedMapExtra.ChokesBetweenMainAndNaturals).First();
+            var naturalChoke = _analyzedMapExtra.NaturalsEntrances.First();
             var chokePosition = naturalChoke.ContentTiles.First().AsWalkTile().ToBuildTile();
             var buildLocation = Enumerable.Range(-20, 40).Select(x => chokePosition.X + x + (x > 0 ? 2 : 0))
                 .SelectMany(x => Enumerable.Range(-20, 40).Select(y => chokePosition.Y + y + (y > 0 ? 2 : 0)).Select(y => new TilePosition(x, y)))

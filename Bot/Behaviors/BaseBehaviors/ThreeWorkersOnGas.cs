@@ -12,19 +12,22 @@
 
         public override void Execute()
         {
-            if (!HasBuilding(UnitType.Zerg_Extractor)) return;
+            if (!HasCompletedBuilding(UnitType.Zerg_Extractor)) return;
 
-            var workersGatheringGas = OwnWorkers.Where(w => w.IsGatheringGas).ToList();
-            var workersGatheringMinerals = OwnWorkers.Where(w => w.IsGatheringMinerals).ToList();
-            var hasNotEnough = workersGatheringGas.Count < 3;
-            if (hasNotEnough && workersGatheringMinerals.Count > 6 && OwnWorkers.Any())
+            var workersGatheringMinerals = MineralWorkers.ToList();
+            var workersGatheringGas = GasWorkers.ToList();
+
+            var hasNotEnoughOnGas = workersGatheringGas.Count < 3;
+            var isMineralLineHealthy = workersGatheringMinerals.Count > 6;
+            if (hasNotEnoughOnGas && isMineralLineHealthy && workersGatheringMinerals.Any())
             {
-                GatherClosestGas(GetWorker());
+                GatherClosestGas(workersGatheringMinerals.First());
                 return;
             }
 
-            var hasTooMany = workersGatheringGas.Count > 3;
-            if (hasTooMany || workersGatheringMinerals.Count < 6 && workersGatheringGas.Any())
+            var hasTooManyOnGas = workersGatheringGas.Count > 3;
+            var isMineralLineStarved = workersGatheringMinerals.Count < 6;
+            if (hasTooManyOnGas || isMineralLineStarved && workersGatheringGas.Any())
                 GatherClosestMineral(workersGatheringGas.First());
         }
     }
