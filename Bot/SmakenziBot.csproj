@@ -120,6 +120,10 @@
     <Compile Include="GameInfo.cs" />
     <Compile Include="GameMemory.cs" />
     <Compile Include="MyUnits.cs" />
+    <Compile Include="Prototypes\Executor.cs" />
+    <Compile Include="Prototypes\MacroTask.cs" />
+    <Compile Include="Prototypes\Scheduler.cs" />
+    <Compile Include="Prototypes\SchedulerService.cs" />
     <Compile Include="Squad.cs" />
     <Compile Include="AnalyzedMapExtra.cs" />
     <Compile Include="Trigger.cs" />
