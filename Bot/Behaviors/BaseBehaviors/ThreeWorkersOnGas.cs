@@ -19,7 +19,7 @@
 
             var hasNotEnoughOnGas = workersGatheringGas.Count < 3;
             var isMineralLineHealthy = workersGatheringMinerals.Count > 6;
-            if (hasNotEnoughOnGas && isMineralLineHealthy && workersGatheringMinerals.Any())
+            if (hasNotEnoughOnGas && isMineralLineHealthy)
             {
                 GatherClosestGas(workersGatheringMinerals.First());
                 return;
