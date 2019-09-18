@@ -29,7 +29,7 @@
 
         public override void Execute()
         {
-            if (_entrance == null) return;
+            if (_entrance == null || !_entranceArc.Any()) return;
 
             var unitsToMove = OwnFighters.Where(u => u.IsIdle).Where(u => !IsNearEntrance(u));
             unitsToMove.ForEach(u =>

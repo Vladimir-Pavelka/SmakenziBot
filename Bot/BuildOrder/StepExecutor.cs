@@ -34,7 +34,7 @@
                     _trainingStarted.Where(x => x == morphStep.Target).Take(1).Subscribe(x => CompleteStep(step));
                     return;
                 case HatcheryBuildingStep hatcheryStep:
-                    if (hatcheryStep.HatcheryType.HasFlag(HatcheryType.Expansion))
+                    if (HatcheryType.Expansion.HasFlag(hatcheryStep.HatcheryType))
                     {
                         _expandExecutor.Execute(hatcheryStep);
                         return;
@@ -118,9 +118,10 @@
         {
             var building = constructStep.Target;
             var basePosition = Game.Self.StartLocation;
-            var buildLocation = Game.GetBuildLocation(UnitTypes.All[building], basePosition, 64, false);
+            var buildLocation = Game.GetBuildLocation(UnitTypes.All[building], basePosition, 32, false);
 
-            if (building == UnitType.Zerg_Creep_Colony) buildLocation = CreepColonyNearChoke();
+            if (building == UnitType.Zerg_Creep_Colony) 
+                buildLocation = CreepColonyNearChoke() ?? buildLocation;
 
             if (buildLocation == null) throw new Exception("Could not find suitable build site");
             return buildLocation;
@@ -136,7 +137,9 @@
 
         private static void MorphLarvaInto(UnitType unitType)
         {
-            var hatcheryWithMostLarvas = Game.Self.Units.Where(u => u.Is(UnitType.Zerg_Larva)).GroupBy(l => l.Hatchery)
+            var hatcheryWithMostLarvas = Game.Self.Units.Where(u => u.Is(UnitType.Zerg_Larva))
+                .GroupBy(l => l.Hatchery)
+                .Where(g => g.Key != null)
                 .Where(g => g.Key.Exists).MaxBy(g => g.Key.Larva.Count).Key;
 
             var larva = hatcheryWithMostLarvas.Larva.FirstOrDefault();
@@ -153,7 +156,8 @@
                 .OrderBy(naturalChoke.ContentTiles.First().AsWalkTile().ToBuildTile().CalcApproximateDistance)
                 .Where(site => Game.CanBuildHere(site, UnitType.Zerg_Creep_Colony, null, true))
                 .Skip(Rnd.Next(10))
-                .First();
+                .FirstOrDefault();
+
 
             return buildLocation;
         }

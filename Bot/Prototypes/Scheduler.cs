@@ -28,13 +28,13 @@
                 UnitType.Zerg_Drone, UnitType.Zerg_Drone
             };
 
-        private Step GetNextStep()
-        {
+        //private Step GetNextStep()
+        //{
 
-            foreach (var step in _opening)
-            {
+        //    foreach (var step in _opening)
+        //    {
                 
-            }
-        }
+        //    }
+        //}
     }
 }

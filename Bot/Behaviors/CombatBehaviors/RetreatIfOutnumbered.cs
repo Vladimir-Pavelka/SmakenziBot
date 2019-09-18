@@ -49,7 +49,10 @@
         private void RetreatToClosestReinforcement(Unit u)
         {
             MyUnits.SetActivity(u, nameof(RetreatIfOutnumbered));
-            u.Move(_mapCenter, false);
+            var natural = _gameInfo.MyBases.FirstOrDefault(b => b.IsNatural);
+            var any = _gameInfo.MyBases.FirstOrDefault();
+            var retreatPoint = (natural ?? any)?.BaseRegion.ContentTiles.First().AsWalkTile().ToPixelTile() ?? _mapCenter;
+            u.Move(retreatPoint, false);
         }
     }
 }

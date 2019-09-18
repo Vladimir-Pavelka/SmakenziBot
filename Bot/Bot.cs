@@ -1,5 +1,6 @@
 ﻿namespace SmakenziBot
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reactive.Linq;
@@ -58,7 +59,9 @@
             var hasEntranceToNaturalExp = entranceToNaturalExp != null;
             var entranceToGuard = hasEntranceToNaturalExp
                 ? entranceToNaturalExp
-                : _analyzedMapExtra.ChokesBetweenMainAndNaturals.FirstOrDefault();
+                : _analyzedMapExtra.ChokesBetweenMainAndNaturals.FirstOrDefault() ?? _analyzedMapExtra.MyStartRegion.AdjacentChokes.FirstOrDefault();
+
+            if (entranceToGuard == null) throw new InvalidOperationException("No main base entrance found. Probably an island map");
 
             var main = _analyzedMapExtra.MyStartRegion;
 
