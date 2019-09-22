@@ -1,23 +1,26 @@
 ﻿namespace SmakenziBot.Prototypes
 {
-    using BroodWar.Api.Enum;
+    using System;
     using SmakenziBot.BuildOrder.Steps;
     using System.Collections.Generic;
+    using System.Linq;
+    using BroodWar.Api;
+    using UnitType = BroodWar.Api.Enum.UnitType;
 
     public class Scheduler
     {
-        private readonly List<MacroTask> _schedule;
         private readonly List<Step> _opening;
+        private readonly IReadOnlyCollection<MacroTask> _queue;
 
-        public Scheduler(List<MacroTask> schedule)
+        public Scheduler(IReadOnlyCollection<MacroTask> queue)
         {
-            _schedule = schedule;
+            _queue = queue;
         }
 
-        public void Execute()
+        public MacroTask GetNext()
         {
-            // check game state, scheduled tasks, executing tasks, if should schedule
-            _schedule.Add(new MacroTask());
+            var nextStep = GetNextStep();
+            return new MacroTask();
         }
 
         private readonly IReadOnlyCollection<UnitType> _gameStartSituation =
@@ -28,13 +31,17 @@
                 UnitType.Zerg_Drone, UnitType.Zerg_Drone
             };
 
-        //private Step GetNextStep()
-        //{
+        private Step GetNextStep()
+        {
+            var materialNow = Game.Self.Units.Select(x => x.UnitType);
 
-        //    foreach (var step in _opening)
-        //    {
-                
-        //    }
-        //}
+            foreach (var step in _opening)
+            {
+                // if _gameStartSituation + sum(step) <= material now continue;
+                return step;
+            }
+
+            throw new InvalidOperationException("No next step found");
+        }
     }
 }
